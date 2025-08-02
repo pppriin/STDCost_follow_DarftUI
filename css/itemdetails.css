@@ -1,0 +1,90 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    height: 100vh;
+    overflow-y: auto;   /*เพิ่มการเลื่อนในแนวตั้ง*/
+    box-sizing: border-box;
+}
+.content h3{
+    margin-top: 70px;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+.content .menu-content{
+    display: flex;
+    justify-content: center;            /*จัดให้อยู่กึ่งกลาง*/
+    /* align-items: center;*/
+    gap: 20px;
+}
+
+.create-item{
+    display: none;
+    margin: 20px;
+    border-radius: 8px;
+    box-shadow: rgba(54, 54, 54, 0.2) 0px 7px 29px 0px;
+}
+
+.item-timemanu{
+    /* display: none; ไม่แสดงผล*/
+    margin: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: rgba(54, 54, 54, 0.2) 0px 7px 29px 0px;
+}
+
+.item-timemanu table,
+.item-timemanu th,
+.item-timemanu td {
+    border: 1px solid black;
+    text-align: center;
+    white-space: nowrap;
+    padding: 10px;
+}
+
+.importexcel{
+    /* display: none; ไม่แสดง*/
+    justify-content: center;
+    width: 1000px;
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: rgba(54, 54, 54, 0.2) 0px 7px 29px 0px;
+}
+
+#btn-import{
+    display: flex;
+    justify-content: center;
+    margin: 15px;
+}
+
+.importexcel input{
+    width: max-content;
+    margin: 10px;
+}
+
+.pagination{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 15px;
+}
+
+.btn-secondary{
+    margin: 0px 15px;
+}
