@@ -7,26 +7,6 @@ require_once 'includes/functions.php';
 // Get current page
 $current_page = isset($_GET['page']) ? $_GET['page'] : 'item_detail';
 
-// เลือกช่วง period
-if (isset($_GET['period'])) {
-    $_SESSION['period'] = $_GET['period'];
-    $select_period = $_SESSION['period'];
-
-    // INSERT TABLE STDC_Periods
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM STDC_Periods WHERE PeriodCode = :period");
-    $stmt->execute([':period' => $select_period]);
-    $count = $stmt->fetchColumn();
-
-    if ($count == 0) {
-        $insertStmt = $conn->prepare("INSERT INTO STDC_Periods (PeriodCode, NotePeriod) VALUES (:period , NULL)");
-        $insertStmt->execute([':period' => $select_period]);
-    }
-} elseif (isset($_GET['clear_period'])) {
-    unset($_SESSION['period']);
-}
-
-$select_period = isset($_SESSION['period']) ? $_SESSION['period'] : '';
-
 // Menu items ปรับให้รองงรับ php version old
 $menu_items = array(
     'item_detail' => 'ITEM Detail Master',
@@ -34,7 +14,7 @@ $menu_items = array(
     'std_cost' => 'STD_COST RM',
     'time_manufacturing' => 'Time Manufacturing',
     'std_allocation' => 'Std allocation rate',
-    'indirect_allocation_master' => 'Indirect allocation rate',
+    'indirect_allocation_master' => 'Indirect allocation master',
     'indirect_allocation' => 'Indirect allocat rate',
     'allocation_basic' => 'Allocation basic master',
     // 'calculate' => 'Calculate'
@@ -47,7 +27,7 @@ $menu_items = array(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Standard Cost UI</title>
-    <!-- <link rel="icon" type="/img/png" href="/img/parcel-calculation.png"> -->
+    <link rel="icon" type="/img/png" href="/img/parcel-calculation.png">
 
     <link rel="stylesheet" href="css/indexstyle.css">
     <!-- Link  Boostrap-->
@@ -82,8 +62,8 @@ $menu_items = array(
             <div class="menu-section">
                 <div class="menu-title"><i class="bi bi-calculator" style="color: #00FFFF;"></i> Calculation</div>
                 <ul>
-                    <li><a href="#">1.) Simulate calculation</a></li>
-                    <li><a href="#">2.) Confirm Calculation</a></li>
+                    <li><a href="?page=simulate_calculation">1.) Simulate calculation</a></li>
+                    <li><a href="#">2.) Calculation Result</a></li>
                 </ul>
             </div>
         </nav>

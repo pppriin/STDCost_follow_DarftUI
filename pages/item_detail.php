@@ -3,15 +3,9 @@ require_once 'config/configdb.php';
 require_once 'includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['uploads_csv'])) {
-    //  $periodCode = $_SESSION['period'] ?? null;
-    $periodCode = isset($_SESSION['period']) ? $_SESSION['period'] : null;
-    if (!$periodCode) {
-        echo '<div class="alert alert-warning">Please select a period before uploading.</div>';
-        return;
-    }
 
     $columns = array('Item_CD', 'Item_name', 'Manufacturing_locCD', 'BOM_pattern');
-    $result = uploadCsvAndInsert($conn, 'item_detail', 'STDC_Item_Detail', $columns, $periodCode);
+    $result = uploadCsvAndInsert($conn, 'item_detail', 'STDC_Item_Detail', $columns);
 
     if ($result['status']) {
         echo "<div class='alert alert-success'>{$result['message']}</div>";
@@ -46,8 +40,8 @@ if (is_dir($folderPath)) {
     <!-- Link CSS -->
     <!-- <link rel="stylesheet" href="css/style.css"> -->
     <!-- Bootstrap core CSS -->
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script> -->
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <!-- <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script> -->
 </head>
 
 <body>
@@ -61,7 +55,7 @@ if (is_dir($folderPath)) {
                 <h5 class="card-title">Browse .csv File</h5>
                 <form method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <input type="file" name="csv_file" id="csv_file" accept=".xlsx,.csv" class="form-control" required>
+                        <input type="file" name="csv_file" id="csv_file" accept=".csv" class="form-control" required>
                     </div>
                     <button type="submit" name="uploads_csv" class="btn btn-success">Import CSV</button>
                 </form>
@@ -70,36 +64,42 @@ if (is_dir($folderPath)) {
     </div>
 
 
-    <!-- <h2>📁 ไฟล์ CSV ในโฟลเดอร์ "<?= htmlspecialchars($pageKey) ?>"</h2> -->
-
-    <?php if (empty($files)): ?>
-        <p style="color: red;">❌ ไม่พบไฟล์ .csv ในโฟลเดอร์นี้</p>
-    <?php else: ?>
-        <table border="1" cellpadding="8" cellspacing="0">
-            <thead>
+    <!-- <h2></h2>ไฟล์ CSV ในโฟลเดอร์ "<?= htmlspecialchars($pageKey) ?>"</h2> -->
+    <div class="class-table">
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Item Details Master</th>
+                <th>Download</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($files)): ?>
                 <tr>
-                    <th>#</th>
-                    <th>ชื่อไฟล์</th>
-                    <th>ขนาด (KB)</th>
-                    <th>ดาวน์โหลด</th>
+                    <td colspan="3" style="text-align: center; color: red;">
+                        <i class="bi bi-x-lg"></i> No csv file found in this folder.
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($files as $index => $path):
-                    $filename = basename($path);
-                    $size = round(filesize($path) / 1024, 2);
-                    $downloadLink = $webPath . '/' . urlencode($filename);
+            <?php else: ?>
+                <?php foreach ($files as $index => $path): 
+                    $filename = basename($path); 
+                    $downloadLink = $webPath . '/' . urlencode($filename); 
                 ?>
                     <tr>
-                        <td><?= $index + 1 ?></td>
+                        <td style="text-align: center;"><?= $index + 1 ?></td>
                         <td><?= htmlspecialchars($filename) ?></td>
-                        <td><?= $size ?></td>
-                        <td><a href="<?= $downloadLink ?>" download>⬇ ดาวน์โหลด</a></td>
+                        <td style="text-align: center;">
+                            <a href="<?= $downloadLink ?>" download>
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
-            </tbody>
-        </table>
-    <?php endif; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
     <!-- <script src="js/itemdetail.js"></script> -->
 </body>
 

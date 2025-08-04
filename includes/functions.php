@@ -24,38 +24,55 @@ function checkFileUploaded($conn, $masterCode, $period = null) {
 // $targetTable ชื่อตารางที่จะเก็บในฐานข้อมูล 
 // $columns ชื่อคอลัมน์ที่จะนำจาก csv เข้าไปแยกเก็บไว้
 // $uploadBasePath โฟลเดอร์สำหรับเก็บไฟล์
-function uploadCsvAndInsert($conn, $pageKey, $targetTable, $columns, $periodCode, $uploadBasePath = 'uploads/') {
+function uploadCsvAndInsert($conn, $pageKey, $targetTable, $columns, $uploadBasePath = 'uploads/') {
     //เช็คการอัพโหลดไฟล์
     if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
         return ['status' => false, 'message' => 'No file uploaded or upload error.'];
     }
 
-    // 1. เตรียมโฟลเดอร์จัดเก็บตาม page  เช่น ถ้า _DIR_ อยู่ที่ projrct/includes จะไปที่ projrct/upload/item_detail/ 
+    // ย้ายไฟล์ csv เข้าไปในโฟลเดอร์ที่เตรียมไว้   $filename ไฟล์ที่ต้องการอัป
+    // $filename = basename($_FILES['csv_file']['name']);     ยังไม่ได้เปลี่ยนชื่อไฟล์
+    // $targetPath = $uploadBasePath . $pageKey . '/' . $filename;
+    
+    // ตรวจสอบชื่อไฟล์ต้องตั้งชื่อตาม Fical year_Period (YYYY_XH)
+    $originalName = $_FILES['csv_file']['name'];
+    if (!preg_match('/^(\d{4}_[12]H)\.csv$/i', $originalName, $matches)) {
+        return['status' => false, 'message' => 'Invalid file name format. Expected format: YYYY_1H.csv or YYYY_2H.csv'];
+    } 
+
+    $periodCode = $matches[1];
+    // INSERT TABLE STDC_Periods
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM STDC_Periods WHERE PeriodCode = :period");
+    $stmt->execute([':period' => $periodCode]);
+    if ($stmt->fetchColumn() == 0) {
+        $insertStmt = $conn->prepare("INSERT INTO STDC_Periods (PeriodCode, NotePeriod) VALUES (:period , NULL)");
+        $insertStmt->execute([':period' => $periodCode]);
+    }
+
+    // สร้างไฟล์ใหม่ไปยังโฟลเดอร์
+    $originalExt = strtolower(pathinfo($_FILES['csv_file']['name'], PATHINFO_EXTENSION));
+    $filename = $periodCode . '.' . $originalExt;
+    $targetPath = $uploadBasePath . $pageKey . '/' . $filename;
+    $targetFile = __DIR__ . '/../' . $targetPath;
+
+    // เตรียมโฟลเดอร์จัดเก็บตาม page  เช่น ถ้า _DIR_ อยู่ที่ projrct/includes จะไปที่ projrct/upload/item_detail/ 
     $uploadDir = __DIR__ . '/../' . $uploadBasePath . $pageKey . '/';
     //สร้างโฟลเดอร์ใหม่ถ้ายังไม่มี 
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
 
-    // 2. ลบไฟล์เก่าหากมีในระบบ โดยจะดึงข้อมูลที่เคบอัปโหลด MasterCode=$pageKey 
-    $stmt = $conn->prepare("SELECT FilePath FROM STDC_Uploaded_Files WHERE MasterCode = ?");
-    $stmt->execute([$pageKey]);
+    // ลบไฟล์เก่าหากมีในระบบ โดยจะดึงข้อมูลที่เคบอัปโหลด MasterCode=$pageKey 
+    $stmt = $conn->prepare("SELECT FilePath FROM STDC_Uploaded_Files WHERE MasterCode = ? AND PeriodCode = ?");
+    $stmt->execute([$pageKey ,$periodCode]);
     if ($row = $stmt->fetch()) {
-        $oldPath = __DIR__ . '/../' . $row['FilePath'];
+        $oldPath = __DIR__ . '/../' . $row['FilePath']; 
         if (file_exists($oldPath)) {
             unlink($oldPath);
         }
-        $conn->prepare("DELETE FROM STDC_Uploaded_Files WHERE MasterCode = ?")->execute([$pageKey]);
+        $conn->prepare("DELETE FROM STDC_Uploaded_Files WHERE MasterCode = ? AND PeriodCode = ?")->execute([$pageKey, $periodCode]);
     }
-
-    // 3. ย้ายไฟล์ csv เข้าไปในโฟลเดอร์ที่เตรียมไว้   $filename ไฟล์ที่ต้องการอัป
-    // $filename = basename($_FILES['csv_file']['name']);     ยังไม่ได้เปลี่ยนชื่อไฟล์
-    // $targetPath = $uploadBasePath . $pageKey . '/' . $filename;
     
-    $originalExt = strtolower(pathinfo($_FILES['csv_file']['name'], PATHINFO_EXTENSION));
-    $filename = $pageKey . '_' . $periodCode . '.' . $originalExt;
-    $targetPath = $uploadBasePath . $pageKey . '/' . $filename;
-    $targetFile = __DIR__ . '/../' . $targetPath;
 
     if (!move_uploaded_file($_FILES['csv_file']['tmp_name'], $targetFile)) {
         return ['status' => false, 'message' => 'Failed to move uploaded file.'];
