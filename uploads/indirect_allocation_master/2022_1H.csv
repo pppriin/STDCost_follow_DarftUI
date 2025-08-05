@@ -1,0 +1,101 @@
+﻿Alloc. source dept. CD,Alloc. source dept. name,Alloc. A/C CD,Alloc. A/C name,Alloc. rate CD,Alloc. rate name,Transfer alloc. A/C CD,Transfer alloc. A/C name
+CPBR03,Wiper Mold,8109900,Research and development expenses,FC008,Prodution r(WIPER),8109900WS,Research and development expenses
+CPBRWS,Wiper WS,8109900,Research and development expenses,FC008,Prodution r(WIPER),8109900WS,Research and development expenses
+CPPMLG,Logistics,8109900,Research and development expenses,FC017,Prodution r(RAREWP),8109900OT,Research and development expenses
+CPPMMT,Material Common,8109900,Research and development expenses,FC004,Personnel ratio(MAT),8109900WS,Research and development expenses
+CPPMPL,Planning,8109900,Research and development expenses,FC002,Production ratio,8109900PL,Research and development expenses
+CPQA00,Quality assurance,8109900,Research and development expenses,FC002,Production ratio,8109900OT,Research and development expenses
+CPWPWS,WP WS,8109900,Research and development expenses,FC010,Prodution r(WP),8109900WS,Research and development expenses
+CPWPWS,WP WS,8109900WS,Research and development expenses,FC010,Prodution r(WP),8109900WS,Research and development expenses
+CPABWS,Auto WS,8120001,[M]Salaries and wages,FC009,"Prodution r(RA,RE)",8120001WS,[M]Salaries and wages
+CPATWS,AT WS,8120001,[M]Salaries and wages,FC007,Prodution ratio(AT),8120001WS,[M]Salaries and wages
+CPBMGA,General affair,8120001,[M]Salaries and wages,FC001,Personnel ratio,8120001OT,[M]Salaries and wages
+CPBR03,Wiper Mold,8120001,[M]Salaries and wages,FC008,Prodution r(WIPER),8120001WS,[M]Salaries and wages
+CPBR07,Wiper laboratory,8120001,[M]Salaries and wages,FC008,Prodution r(WIPER),8120001WS,[M]Salaries and wages
+CPBRPK,Wiper Packing,8120001,[M]Salaries and wages,FC008,Prodution r(WIPER),8120001WS,[M]Salaries and wages
+CPBRWS,Wiper WS,8120001,[M]Salaries and wages,FC008,Prodution r(WIPER),8120001WS,[M]Salaries and wages
+CPFC00,Factory Common,8120001,[M]Salaries and wages,FC001,Personnel ratio,8120001OT,[M]Salaries and wages
+CPFC01,Factory1,8120001,[M]Salaries and wages,FC013,Personnel r(WP),8120001OT,[M]Salaries and wages
+CPFC02,Factory2,8120001,[M]Salaries and wages,FC014,"Personnel r(RA,RE)",8120001OT,[M]Salaries and wages
+CPFC03,Factory3,8120001,[M]Salaries and wages,FC015,Personnel r(MAT),8120001OT,[M]Salaries and wages
+CPFC04,Factory4,8120001,[M]Salaries and wages,FC016,"Personnel r(SL,GD)",8120001OT,[M]Salaries and wages
+CPFC05,Factory5,8120001,[M]Salaries and wages,FC008,Prodution r(WIPER),8120001OT,[M]Salaries and wages
+CPFC06,Factory6,8120001,[M]Salaries and wages,FC017,Prodution r(RAREWP),8120001OT,[M]Salaries and wages
+CPFC07,Factory7,8120001,[M]Salaries and wages,FC018,"Personnel r(AT,SYN)",8120001OT,[M]Salaries and wages
+CPFCTH,Tent House,8120001,[M]Salaries and wages,FC015,Personnel r(MAT),8120001OT,[M]Salaries and wages
+CPKZ00,KAIZEN,8120001,[M]Salaries and wages,FC002,Production ratio,8120001OT,[M]Salaries and wages
+CPMG00,Management Cost,8120001,[M]Salaries and wages,FC001,Personnel ratio,8120001OT,[M]Salaries and wages
+CPMTBB,BANBURY,8120001,[M]Salaries and wages,FC005,Personnel r(BANBURY),8120001WS,[M]Salaries and wages
+CPMTGD,GD Common,8120001,[M]Salaries and wages,FC006,Personnel ratio(GD),8120001WS,[M]Salaries and wages
+CPMTWS,Material WS,8120001,[M]Salaries and wages,FC004,Personnel ratio(MAT),8120001WS,[M]Salaries and wages
+CPPEMN,Maintenance,8120001,[M]Salaries and wages,FC002,Production ratio,8120001TE,[M]Salaries and wages
+CPPEPE,PE,8120001,[M]Salaries and wages,FC002,Production ratio,8120001TE,[M]Salaries and wages
+CPPM00,Pro. Management,8120001,[M]Salaries and wages,FC002,Production ratio,8120001OT,[M]Salaries and wages
+CPPMAB,Auto Belt Common,8120001,[M]Salaries and wages,FC009,"Prodution r(RA,RE)",8120001WS,[M]Salaries and wages
+CPPMLG,Logistics,8120001,[M]Salaries and wages,FC017,Prodution r(RAREWP),8120001OT,[M]Salaries and wages
+CPPMMT,Material Common,8120001,[M]Salaries and wages,FC004,Personnel ratio(MAT),8120001WS,[M]Salaries and wages
+CPPMPE,PE Common,8120001,[M]Salaries and wages,FC002,Production ratio,8120001TE,[M]Salaries and wages
+CPPMPL,Planning,8120001,[M]Salaries and wages,FC002,Production ratio,8120001PL,[M]Salaries and wages
+CPQA00,Quality assurance,8120001,[M]Salaries and wages,FC002,Production ratio,8120001OT,[M]Salaries and wages
+CPSE00,Safety & Environment,8120001,[M]Salaries and wages,FC001,Personnel ratio,8120001OT,[M]Salaries and wages
+CPSLWS,Sunline WS,8120001,[M]Salaries and wages,FC011,Prodution r(SL),8120001WS,[M]Salaries and wages
+CPSYWS,Synchro WS,8120001,[M]Salaries and wages,FC012,Prodution r(SYN),8120001WS,[M]Salaries and wages
+CPTOLB,Tooling label,8120001,[M]Salaries and wages,FC003,Production ratio(PR),8120001TE,[M]Salaries and wages
+CPTOMD,Tooling mold,8120001,[M]Salaries and wages,FC003,Production ratio(PR),8120001TE,[M]Salaries and wages
+CPTOWS,Tooling WS,8120001,[M]Salaries and wages,FC003,Production ratio(PR),8120001TE,[M]Salaries and wages
+CPWPWS,WP WS,8120001,[M]Salaries and wages,FC010,Prodution r(WP),8120001WS,[M]Salaries and wages
+CPABWS,Auto WS,8180001,[M]EMPLOYEE'S RETIREMENT,FC009,"Prodution r(RA,RE)",8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPATWS,AT WS,8180001,[M]EMPLOYEE'S RETIREMENT,FC007,Prodution ratio(AT),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPBMGA,General affair,8180001,[M]EMPLOYEE'S RETIREMENT,FC001,Personnel ratio,8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPBR07,Wiper laboratory,8180001,[M]EMPLOYEE'S RETIREMENT,FC008,Prodution r(WIPER),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPBRPK,Wiper Packing,8180001,[M]EMPLOYEE'S RETIREMENT,FC008,Prodution r(WIPER),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPBRWS,Wiper WS,8180001,[M]EMPLOYEE'S RETIREMENT,FC008,Prodution r(WIPER),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPFC00,Factory Common,8180001,[M]EMPLOYEE'S RETIREMENT,FC001,Personnel ratio,8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPFC01,Factory1,8180001,[M]EMPLOYEE'S RETIREMENT,FC013,Personnel r(WP),8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPFC02,Factory2,8180001,[M]EMPLOYEE'S RETIREMENT,FC014,"Personnel r(RA,RE)",8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPFC03,Factory3,8180001,[M]EMPLOYEE'S RETIREMENT,FC015,Personnel r(MAT),8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPFC04,Factory4,8180001,[M]EMPLOYEE'S RETIREMENT,FC016,"Personnel r(SL,GD)",8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPFC05,Factory5,8180001,[M]EMPLOYEE'S RETIREMENT,FC008,Prodution r(WIPER),8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPFC06,Factory6,8180001,[M]EMPLOYEE'S RETIREMENT,FC017,Prodution r(RAREWP),8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPFC07,Factory7,8180001,[M]EMPLOYEE'S RETIREMENT,FC018,"Personnel r(AT,SYN)",8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPFCTH,Tent House,8180001,[M]EMPLOYEE'S RETIREMENT,FC015,Personnel r(MAT),8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPKZ00,KAIZEN,8180001,[M]EMPLOYEE'S RETIREMENT,FC002,Production ratio,8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPMG00,Management Cost,8180001,[M]EMPLOYEE'S RETIREMENT,FC001,Personnel ratio,8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPMTBB,BANBURY,8180001,[M]EMPLOYEE'S RETIREMENT,FC005,Personnel r(BANBURY),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPMTGD,GD Common,8180001,[M]EMPLOYEE'S RETIREMENT,FC006,Personnel ratio(GD),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPMTWS,Material WS,8180001,[M]EMPLOYEE'S RETIREMENT,FC004,Personnel ratio(MAT),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPPEMN,Maintenance,8180001,[M]EMPLOYEE'S RETIREMENT,FC002,Production ratio,8180001TE,[M]EMPLOYEE'S RETIREMENT
+CPPEPE,PE,8180001,[M]EMPLOYEE'S RETIREMENT,FC002,Production ratio,8180001TE,[M]EMPLOYEE'S RETIREMENT
+CPPM00,Pro. Management,8180001,[M]EMPLOYEE'S RETIREMENT,FC002,Production ratio,8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPPMAB,Auto Belt Common,8180001,[M]EMPLOYEE'S RETIREMENT,FC009,"Prodution r(RA,RE)",8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPPMLG,Logistics,8180001,[M]EMPLOYEE'S RETIREMENT,FC017,Prodution r(RAREWP),8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPPMMT,Material Common,8180001,[M]EMPLOYEE'S RETIREMENT,FC004,Personnel ratio(MAT),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPPMPE,PE Common,8180001,[M]EMPLOYEE'S RETIREMENT,FC002,Production ratio,8180001TE,[M]EMPLOYEE'S RETIREMENT
+CPPMPL,Planning,8180001,[M]EMPLOYEE'S RETIREMENT,FC002,Production ratio,8180001PL,[M]EMPLOYEE'S RETIREMENT
+CPQA00,Quality assurance,8180001,[M]EMPLOYEE'S RETIREMENT,FC002,Production ratio,8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPSE00,Safety & Environment,8180001,[M]EMPLOYEE'S RETIREMENT,FC001,Personnel ratio,8180001OT,[M]EMPLOYEE'S RETIREMENT
+CPSLWS,Sunline WS,8180001,[M]EMPLOYEE'S RETIREMENT,FC011,Prodution r(SL),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPSYWS,Synchro WS,8180001,[M]EMPLOYEE'S RETIREMENT,FC012,Prodution r(SYN),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPTOLB,Tooling label,8180001,[M]EMPLOYEE'S RETIREMENT,FC003,Production ratio(PR),8180001TE,[M]EMPLOYEE'S RETIREMENT
+CPTOMD,Tooling mold,8180001,[M]EMPLOYEE'S RETIREMENT,FC003,Production ratio(PR),8180001TE,[M]EMPLOYEE'S RETIREMENT
+CPTOWS,Tooling WS,8180001,[M]EMPLOYEE'S RETIREMENT,FC003,Production ratio(PR),8180001TE,[M]EMPLOYEE'S RETIREMENT
+CPWPWS,WP WS,8180001,[M]EMPLOYEE'S RETIREMENT,FC010,Prodution r(WP),8180001WS,[M]EMPLOYEE'S RETIREMENT
+CPABWS,Auto WS,8190001,[M]Pension for provident fund,FC009,"Prodution r(RA,RE)",8190001WS,[M]Pension for provident fund
+CPATWS,AT WS,8190001,[M]Pension for provident fund,FC007,Prodution ratio(AT),8190001WS,[M]Pension for provident fund
+CPBMGA,General affair,8190001,[M]Pension for provident fund,FC001,Personnel ratio,8190001OT,[M]Pension for provident fund
+CPBR03,Wiper Mold,8190001,[M]Pension for provident fund,FC008,Prodution r(WIPER),8190001WS,[M]Pension for provident fund
+CPBR07,Wiper laboratory,8190001,[M]Pension for provident fund,FC008,Prodution r(WIPER),8190001WS,[M]Pension for provident fund
+CPBRPK,Wiper Packing,8190001,[M]Pension for provident fund,FC008,Prodution r(WIPER),8190001WS,[M]Pension for provident fund
+CPBRWS,Wiper WS,8190001,[M]Pension for provident fund,FC008,Prodution r(WIPER),8190001WS,[M]Pension for provident fund
+CPFC00,Factory Common,8190001,[M]Pension for provident fund,FC001,Personnel ratio,8190001OT,[M]Pension for provident fund
+CPFC01,Factory1,8190001,[M]Pension for provident fund,FC013,Personnel r(WP),8190001OT,[M]Pension for provident fund
+CPFC02,Factory2,8190001,[M]Pension for provident fund,FC014,"Personnel r(RA,RE)",8190001OT,[M]Pension for provident fund
+CPFC03,Factory3,8190001,[M]Pension for provident fund,FC015,Personnel r(MAT),8190001OT,[M]Pension for provident fund
+CPFC04,Factory4,8190001,[M]Pension for provident fund,FC016,"Personnel r(SL,GD)",8190001OT,[M]Pension for provident fund
+CPFC05,Factory5,8190001,[M]Pension for provident fund,FC008,Prodution r(WIPER),8190001OT,[M]Pension for provident fund
+CPFC06,Factory6,8190001,[M]Pension for provident fund,FC017,Prodution r(RAREWP),8190001OT,[M]Pension for provident fund
+CPFC07,Factory7,8190001,[M]Pension for provident fund,FC018,"Personnel r(AT,SYN)",8190001OT,[M]Pension for provident fund
+CPFCTH,Tent House,8190001,[M]Pension for provident fund,FC015,Personnel r(MAT),8190001OT,[M]Pension for provident fund
+CPKZ00,KAIZEN,8190001,[M]Pension for provident fund,FC002,Production ratio,8190001OT,[M]Pension for provident fund
+CPMG00,Management Cost,8190001,[M]Pension for provident fund,FC001,Personnel ratio,8190001OT,[M]Pension for provident fund
+CPMTBB,BANBURY,8190001,[M]Pension for provident fund,FC005,Personnel r(BANBURY),8190001WS,[M]Pension for provident fund

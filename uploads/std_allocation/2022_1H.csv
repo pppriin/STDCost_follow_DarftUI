@@ -1,0 +1,101 @@
+﻿Alloc. A/C CD,Alloc. A/C name,Dept./Process CD,Dept./Process name,Alloc. rate,Alloc. basis
+8109900,Research and development expenses,CPBRK1,Wiper KN1,4.28084909,Time alloc.
+8109900,Research and development expenses,CPGD01,GD1,0.01563629,Time alloc.
+8109900,Research and development expenses,CPRA02,RA2,0.00132872,Time alloc.
+8109900,Research and development expenses,CPRA03,RA3,0.00972878,Time alloc.
+8109900,Research and development expenses,CPRA04,RA4,0.02542569,Time alloc.
+8109900,Research and development expenses,CPRE02,RE2,0.00060082,Time alloc.
+8109900,Research and development expenses,CPRE03,RE3,0.00121433,Time alloc.
+8109900,Research and development expenses,CPRE05,RE5,0.0011915,Time alloc.
+8109900,Research and development expenses,CPWP07,WP7,0.02282182,Time alloc.
+8109900,Research and development expenses,CPWP10,WP10,0.00112624,Time alloc.
+8109900OT,Research and development expenses,CPAT01,AT-1,0.00066095,Time alloc.
+8109900OT,Research and development expenses,CPAT02,AT-2,0.00065353,Time alloc.
+8109900OT,Research and development expenses,CPAT03,AT-3,0.00027281,Time alloc.
+8109900OT,Research and development expenses,CPBB01,BANBURY1,0.000053,Time alloc.
+8109900OT,Research and development expenses,CPBB02,BANBURY2,0.00003717,Time alloc.
+8109900OT,Research and development expenses,CPBI01,Wiper Inspection,0.0095696,Time alloc.
+8109900OT,Research and development expenses,CPBI02,Wiper Side Cut,0.00960081,Time alloc.
+8109900OT,Research and development expenses,CPBI03,Wiper Center Cut,0.00622174,Time alloc.
+8109900OT,Research and development expenses,CPBIG1,Wiper Graphite1,0.00212017,Time alloc.
+8109900OT,Research and development expenses,CPBR01,Wiper Press,0.00330093,Time alloc.
+8109900OT,Research and development expenses,CPBR02,Wiper Chlorine,0.00433178,Time alloc.
+8109900OT,Research and development expenses,CPCL01,CALENDER1,0.00000136,Time alloc.
+8109900OT,Research and development expenses,CPGD01,GD1,0.00000591,Time alloc.
+8109900OT,Research and development expenses,CPKN04,KNEADER4,0.00003085,Time alloc.
+8109900OT,Research and development expenses,CPMT70,45 and 70 degrees,0.00001438,Time alloc.
+8109900OT,Research and development expenses,CPMTDY,DYEING,0.0000021,Time alloc.
+8109900OT,Research and development expenses,CPRA01,RA1,0.0000577,Time alloc.
+8109900OT,Research and development expenses,CPRA02,RA2,0.00012414,Time alloc.
+8109900OT,Research and development expenses,CPRA03,RA3,0.00013754,Time alloc.
+8109900OT,Research and development expenses,CPRA04,RA4,0.00017831,Time alloc.
+8109900OT,Research and development expenses,CPRE01,RE1,0.00005359,Time alloc.
+8109900OT,Research and development expenses,CPRE02,RE2,0.00017841,Time alloc.
+8109900OT,Research and development expenses,CPRE03,RE3,0.00013031,Time alloc.
+8109900OT,Research and development expenses,CPRE04,RE4,0.00375428,Time alloc.
+8109900OT,Research and development expenses,CPRE05,RE5,0.00013727,Time alloc.
+8109900OT,Research and development expenses,CPSL01,Sunline1,0.00016099,Time alloc.
+8109900OT,Research and development expenses,CPSY01,Synchro 1,0.00007339,Time alloc.
+8109900OT,Research and development expenses,CPSY02,Synchro 2,0.00010357,Time alloc.
+8109900OT,Research and development expenses,CPSY03,Synchro 3,0.00022535,Time alloc.
+8109900OT,Research and development expenses,CPSY04,Synchro 4,0.0000197,Time alloc.
+8109900OT,Research and development expenses,CPWP01,WP1,0.00132542,Time alloc.
+8109900OT,Research and development expenses,CPWP02,WP2,0.0013451,Time alloc.
+8109900OT,Research and development expenses,CPWP03,WP3,0.0018195,Time alloc.
+8109900OT,Research and development expenses,CPWP04,WP4,0.00262468,Time alloc.
+8109900OT,Research and development expenses,CPWP06,WP6,0.00242785,Time alloc.
+8109900OT,Research and development expenses,CPWP07,WP7,0.00484063,Time alloc.
+8109900OT,Research and development expenses,CPWP08,WP8,0.00274643,Time alloc.
+8109900OT,Research and development expenses,CPWP09,WP9,0.00289358,Time alloc.
+8109900OT,Research and development expenses,CPWP10,WP10,0.00151343,Time alloc.
+8109900OT,Research and development expenses,CPWPAB,AIR BAG,0.00180991,Time alloc.
+8109900OT,Research and development expenses,CPWPDL,D LINE,0.0037489,Time alloc.
+8109900OT,Research and development expenses,CPWPLL,LONG LINE,0.00143163,Time alloc.
+8109900WS,Research and development expenses,CPBI01,Wiper Inspection,0.06616922,Time alloc.
+8109900WS,Research and development expenses,CPBI02,Wiper Side Cut,0.07347287,Time alloc.
+8109900WS,Research and development expenses,CPBI03,Wiper Center Cut,0.0510933,Time alloc.
+8109900WS,Research and development expenses,CPBIG1,Wiper Graphite1,0.00109984,Time alloc.
+8109900WS,Research and development expenses,CPBR01,Wiper Press,0.00754767,Time alloc.
+8109900WS,Research and development expenses,CPBR02,Wiper Chlorine,0.00990475,Time alloc.
+8109900WS,Research and development expenses,CPWP01,WP1,0.00770868,Time alloc.
+8109900WS,Research and development expenses,CPWP02,WP2,0.00732158,Time alloc.
+8109900WS,Research and development expenses,CPWP03,WP3,0.00960269,Time alloc.
+8109900WS,Research and development expenses,CPWP04,WP4,0.01643874,Time alloc.
+8109900WS,Research and development expenses,CPWP06,WP6,0.01368163,Time alloc.
+8109900WS,Research and development expenses,CPWP07,WP7,0.02814872,Time alloc.
+8109900WS,Research and development expenses,CPWP08,WP8,0.01503556,Time alloc.
+8109900WS,Research and development expenses,CPWP09,WP9,0.00627735,Time alloc.
+8109900WS,Research and development expenses,CPWP10,WP10,0.00787222,Time alloc.
+8109900WS,Research and development expenses,CPWPAB,AIR BAG,0.01929546,Time alloc.
+8109900WS,Research and development expenses,CPWPDL,D LINE,0.02134577,Time alloc.
+8109900WS,Research and development expenses,CPWPLL,LONG LINE,0.00824479,Time alloc.
+8120001,[M]Salaries and wages,CPAT01,AT-1,7.42075546,Time alloc.
+8120001,[M]Salaries and wages,CPAT02,AT-2,3.60383134,Time alloc.
+8120001,[M]Salaries and wages,CPAT03,AT-3,2.38174634,Time alloc.
+8120001,[M]Salaries and wages,CPATIJ,AT Injection,0.7333861,Time alloc.
+8120001,[M]Salaries and wages,CPBB01,BANBURY1,8.7903669,Time alloc.
+8120001,[M]Salaries and wages,CPBB02,BANBURY2,2.70950747,Time alloc.
+8120001,[M]Salaries and wages,CPBI01,Wiper Inspection,0.84134449,Time alloc.
+8120001,[M]Salaries and wages,CPBI02,Wiper Side Cut,1.07028555,Time alloc.
+8120001,[M]Salaries and wages,CPBI03,Wiper Center Cut,6.16003351,Time alloc.
+8120001,[M]Salaries and wages,CPBIG1,Wiper Graphite1,0.1832704,Time alloc.
+8120001,[M]Salaries and wages,CPBR01,Wiper Press,0.19879587,Time alloc.
+8120001,[M]Salaries and wages,CPBR02,Wiper Chlorine,0.2216957,Time alloc.
+8120001,[M]Salaries and wages,CPBRC1,Wiper CL1,3.69165458,Time alloc.
+8120001,[M]Salaries and wages,CPBRCR,Wiper ChlorineMixing,0.02601587,Time alloc.
+8120001,[M]Salaries and wages,CPBRCT,Wiper Rubber Cutting,0.50852059,Time alloc.
+8120001,[M]Salaries and wages,CPBRK1,Wiper KN1,10.31849634,Time alloc.
+8120001,[M]Salaries and wages,CPCL01,CALENDER1,8.63401375,Time alloc.
+8120001,[M]Salaries and wages,CPCL02,CALENDER2,5.42212546,Time alloc.
+8120001,[M]Salaries and wages,CPCL03,CALENDER3,7.77312034,Time alloc.
+8120001,[M]Salaries and wages,CPGD01,GD1,0.10778692,Time alloc.
+8120001,[M]Salaries and wages,CPKN01,KNEADER1,3.04546685,Time alloc.
+8120001,[M]Salaries and wages,CPKN03,KNEADER3,4.36107421,Time alloc.
+8120001,[M]Salaries and wages,CPKN04,KNEADER4,10.75767733,Time alloc.
+8120001,[M]Salaries and wages,CPMT45,45 degrees,2.09919515,Time alloc.
+8120001,[M]Salaries and wages,CPMT70,45 and 70 degrees,0.41759837,Time alloc.
+8120001,[M]Salaries and wages,CPMTBJ,BUTT JOINT,2.20886364,Time alloc.
+8120001,[M]Salaries and wages,CPMTBS,BIAS,3.66416009,Time alloc.
+8120001,[M]Salaries and wages,CPMTDY,DYEING,0.15107086,Time alloc.
+8120001,[M]Salaries and wages,CPMTLR,Liner rewinding,1.79337412,Time alloc.
+8120001,[M]Salaries and wages,CPMTST,Slitter,0.09501088,Time alloc.

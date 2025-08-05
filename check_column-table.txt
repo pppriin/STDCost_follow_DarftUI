@@ -1,53 +1,3 @@
-SELECT DISTINCT Item_CD , Item_name 
-FROM STDC_Item_Detail;
-
-stdcost folder old การทำงานจะแบ่งเป็น item array link track a ทุกเมนูไปประมวลผลที่ includes/functions.php ประมวลผลและบันทึกข้อมูลลง database  เก็บ log in dir
-
-
-STD_Cost ต้องการให้นำ functions.php มาต่อยอด เมื่อเก็บ log file ไว้แล้วสามารถนำมาโชว์ได้ว่ามีไฟล์อะไรบ้างอยู่ในนั้นและให้สามารถดาวน์โหลดลงมาได้
-	-เปลี่ยนการทำงานในการอัพโหลด functions.phpให้เป็น number(4)_(Number)H.csv
-		// ตรวจสอบชื่อไฟล์
-        if (preg_match('/^\d{4}_[1-2]H\.csv$/', $filename)) {
-            $destination = __DIR__ . '/uploads/' . $filename;
-            move_uploaded_file($file['tmp_name'], $destination);
-
-
-
-----------------------------------------------------------------------
-4 Aug
-ต้องการimport csv ที่มีชื่อเช่น 2025_1H.csv,2025_2H.csv โดยที่4ตัวแรกแทนปี_ตัวเลขหนึ่งตัวตาด้วย H .csvลงในเข้าไปในเว็บของเราและเก็บ log file ไว้ โดยที่ก่อนที่จะimport ต้องเช็คว่าชื่อไฟล์นั้นตรงตามformatไหมถึงจะบันทึกลงได้แบบนี้ต้องทำอย่างไร 
-
-
-message ตอนรีหน้า The page that you're looking for used information that you entered. Returning to that page might cause any action you took to be repeated. Do you want to continue?
-
-
--index.php แต่ละเมนูใน Master Input จะมี functions.php เพือ insert ข้อมูลเข้า db แยก table ตามเมนู
--simulate_cal.php จะเป็นการเลือก Year-Period แล้วให้อ่านข้อมูลที่อยู่ใน dir แยกเป็นตาม menu_item ที่มีอยู่ใน Master Input เข้าไปเปรียบเทียบกับ db แต่ละ table เพื่อเช็คว่าข้อมูลที่อ่านจากไฟล์มี column ตรงกันกับใน db table แต่ละ menu item ไหม ถ้าข้อมูลตรง Messageจะไม่แสดงผลอะไร แต่ถ้าหากว่าข้อมูลไม่ตรงกับใน db table column จะแสดงผลใน Message=Error:Invalid column
- 
-
-
-Simulate Cal
-=> Patter Process ข้อมูลแต่ละ menu_items ต้องมีแสดงผลอยู่แล้ว statusจะแสดงผลก็ต่อเมื่อมีการนำข้อมูลในไฟล์แต่ละเมนู item อ่านข้อมูล insert เข้าไปที่ table แต่ละเมนูเพื่อเช็คความถูกต้องของข้อมูลและ column เรียบร้อยร้อยแล้วถึงจะแสดงผล ✅ หากมี column ไม่ตรงจะแสดง status=❌ Error:Invalid column หรือหากมีข้อผิดหลาดก็จะแสดงerror 
-=== การทำงาน
-1. กำหนดรายการ column ที่ “ถูกต้อง” ไว้ล่วงหน้าใน array
-2. วนเช็คแต่ละเมนู > โหลดไฟล์ > เช็ค header > เปรียบเทียบกับ column ที่ถูกต้อง
-3. ถ้า column ถูกต้อง → Status = ✅
-4. ถ้าไม่ตรง → Status = ❌, Message = "Error: Invalid column"
-
-error:
-Simulate Calculation
-Fiscal Year-Period: 
-2022_2H
-Prepare Master
-Warning: fopen(2022_2H.csv): Failed to open stream: No such file or directory in C:\xampp\htdocs\STD_Cost\pages\simulate_calculation.php on line 107
-
-Fatal error: Uncaught TypeError: fgetcsv(): Argument #1 ($stream) must be of type resource, bool given in C:\xampp\htdocs\STD_Cost\pages\simulate_calculation.php:108 Stack trace: #0 C:\xampp\htdocs\STD_Cost\pages\simulate_calculation.php(108): fgetcsv(false) #1 C:\xampp\htdocs\STD_Cost\index.php(96): include('C:\\xampp\\htdocs...') #2 {main} thrown in C:\xampp\htdocs\STD_Cost\pages\simulate_calculation.php on line 108
-
-
-page simulate calculation
-= การทำงานยังไม่สามารถ check format + insert เข้า table ได้
-แต่โชว์เมนูได้แล้ว
-
 <?php
 require_once 'config/configdb.php';
 require_once 'includes/functions.php';
@@ -123,13 +73,40 @@ function validateAndInsertData($conn, $pageKey, $selectedPeriod, $table_map) {
             return $result;
         }
         
-        // เปรียบเทียบคอลัมน์
-        $csvHeaderLower = array_map('strtolower', array_map('trim', $csvHeader));
-        $expectedColumnsLower = array_map('strtolower', $expectedColumns);
+        // ทำความสะอาดคอลัมน์ทั้งสองฝั่ง
+        $csvHeaderClean = array_map(function($col) {
+            return strtolower(trim($col, " \t\n\r\0\x0B\"'"));
+        }, $csvHeader);
         
-        if ($csvHeaderLower !== $expectedColumnsLower) {
+        $expectedColumnsClean = array_map(function($col) {
+            return strtolower(trim($col, " \t\n\r\0\x0B\"'"));
+        }, $expectedColumns);
+        
+        // Debug information - เพิ่มข้อมูล debug
+        $debugInfo = [
+            'csv_columns_count' => count($csvHeaderClean),
+            'db_columns_count' => count($expectedColumnsClean),
+            'csv_columns' => $csvHeaderClean,
+            'db_columns' => $expectedColumnsClean,
+            'missing_in_csv' => array_diff($expectedColumnsClean, $csvHeaderClean),
+            'extra_in_csv' => array_diff($csvHeaderClean, $expectedColumnsClean)
+        ];
+        
+        // เช็คจำนวนคอลัมน์และความตรงกัน
+        if (count($csvHeaderClean) !== count($expectedColumnsClean)) {
             fclose($handle);
-            $result['message'] = 'Error: Invalid column structure';
+            $result['message'] = 'Error: Column count mismatch - CSV:' . count($csvHeaderClean) . ' vs DB:' . count($expectedColumnsClean);
+            $result['debug'] = $debugInfo;
+            return $result;
+        }
+        
+        // เช็คว่าคอลัมน์ทั้งหมดตรงกันหรือไม่
+        $columnDiff = array_diff($csvHeaderClean, $expectedColumnsClean);
+        if (!empty($columnDiff)) {
+            fclose($handle);
+            $result['message'] = 'Error: Invalid columns - Missing: ' . implode(', ', $debugInfo['missing_in_csv']) . 
+                               ' | Extra: ' . implode(', ', $debugInfo['extra_in_csv']);
+            $result['debug'] = $debugInfo;
             return $result;
         }
         
@@ -137,46 +114,77 @@ function validateAndInsertData($conn, $pageKey, $selectedPeriod, $table_map) {
         $conn->beginTransaction();
         
         try {
-            // Truncate table ก่อน insert
-            $conn->exec("TRUNCATE TABLE $tableName");
+            // เช็คว่าตารางมีข้อมูลอยู่แล้วหรือไม่
+            $checkStmt = $conn->prepare("SELECT COUNT(*) FROM $tableName");
+            $checkStmt->execute();
+            $existingRecords = $checkStmt->fetchColumn();
             
-            // เตรียม insert statement
+            // Truncate table ก่อน insert (เฉพาะเมื่อมีข้อมูลเดิม)
+            if ($existingRecords > 0) {
+                $conn->exec("TRUNCATE TABLE $tableName");
+            }
+            
+            // เตรียม insert statement โดยใช้คอลัมน์จากฐานข้อมูล
             $placeholders = implode(',', array_fill(0, count($expectedColumns), '?'));
             $sql = "INSERT INTO $tableName (" . implode(',', $expectedColumns) . ") VALUES ($placeholders)";
             $stmtInsert = $conn->prepare($sql);
             
             $rowIndex = 0;
             $insertCount = 0;
+            $errorRows = [];
+            
+            // รีเซ็ตตำแหน่งไฟล์กลับไปที่จุดเริ่มต้น
+            rewind($handle);
+            fgetcsv($handle); // ข้ามหัวตาราง
             
             // อ่านและ insert ข้อมูลแต่ละแถว
             while (($data = fgetcsv($handle, 1000, ",")) !== false) {
                 $rowIndex++;
-                if ($rowIndex === 1) continue; // ข้ามหัวตาราง
                 
                 if (count($data) < count($expectedColumns)) {
+                    $errorRows[] = "Row $rowIndex: Insufficient columns (" . count($data) . "/" . count($expectedColumns) . ")";
                     continue; // ข้ามแถวที่ข้อมูลไม่ครบ
                 }
                 
-                // ประมวลผลข้อมูลตามประเภทของ pageKey
-                $processedData = processDataByPageKey($pageKey, $data, $expectedColumns);
-                
-                $stmtInsert->execute($processedData);
-                $insertCount++;
+                try {
+                    // ประมวลผลข้อมูลตามประเภทของ pageKey
+                    $processedData = processDataByPageKey($pageKey, $data, $expectedColumns);
+                    
+                    $stmtInsert->execute($processedData);
+                    $insertCount++;
+                } catch (Exception $rowError) {
+                    $errorRows[] = "Row $rowIndex: " . $rowError->getMessage();
+                    // หากต้องการให้หยุดเมื่อมี error ให้ uncomment บรรทัดต่อไปนี้
+                    // throw $rowError;
+                }
             }
             
             $conn->commit();
+            
+            $successMessage = "Success - {$insertCount} records inserted";
+            if (!empty($errorRows)) {
+                $successMessage .= " (" . count($errorRows) . " rows skipped)";
+            }
+            
             $result['status'] = '✅';
-            $result['message'] = "Success - {$insertCount} records inserted";
+            $result['message'] = $successMessage;
+            $result['details'] = [
+                'inserted' => $insertCount,
+                'errors' => $errorRows,
+                'total_rows' => $rowIndex
+            ];
             
         } catch (Exception $e) {
             $conn->rollBack();
             $result['message'] = 'Error during data insertion: ' . $e->getMessage();
+            $result['debug'] = $debugInfo ?? null;
         }
         
         fclose($handle);
         
     } catch (Exception $e) {
         $result['message'] = 'Error: ' . $e->getMessage();
+        $result['debug'] = $debugInfo ?? null;
     }
     
     return $result;
@@ -270,6 +278,17 @@ if (isset($_POST['prepare_master']) && $selectedPeriod) {
         th {
             background-color: #f2f2f2;
         }
+        details {
+            margin-top: 5px;
+        }
+        summary {
+            font-weight: bold;
+            padding: 2px 0;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body>
@@ -335,7 +354,48 @@ if (isset($_POST['prepare_master']) && $selectedPeriod) {
                             <td><?= $i++ ?></td>
                             <td><?= htmlspecialchars($title) ?></td>
                             <td class="<?= $statusClass ?>"><?= htmlspecialchars($status) ?></td>
-                            <td><?= htmlspecialchars($message) ?></td>
+                            <td>
+                                <?= htmlspecialchars($message) ?>
+                                <?php if (isset($prepareResults[$code]['debug'])): ?>
+                                    <details style="margin-top: 5px;">
+                                        <summary style="cursor: pointer; color: #007bff;">Debug Info</summary>
+                                        <pre style="font-size: 11px; background: #f8f9fa; padding: 5px; margin: 5px 0; border-radius: 3px;">
+CSV Columns (<?= $prepareResults[$code]['debug']['csv_columns_count'] ?>): <?= implode(', ', $prepareResults[$code]['debug']['csv_columns']) ?>
+
+DB Columns (<?= $prepareResults[$code]['debug']['db_columns_count'] ?>): <?= implode(', ', $prepareResults[$code]['debug']['db_columns']) ?>
+
+<?php if (!empty($prepareResults[$code]['debug']['missing_in_csv'])): ?>
+Missing in CSV: <?= implode(', ', $prepareResults[$code]['debug']['missing_in_csv']) ?>
+<?php endif; ?>
+
+<?php if (!empty($prepareResults[$code]['debug']['extra_in_csv'])): ?>
+Extra in CSV: <?= implode(', ', $prepareResults[$code]['debug']['extra_in_csv']) ?>
+<?php endif; ?>
+                                        </pre>
+                                    </details>
+                                <?php endif; ?>
+                                
+                                <?php if (isset($prepareResults[$code]['details'])): ?>
+                                    <details style="margin-top: 5px;">
+                                        <summary style="cursor: pointer; color: #28a745;">Success Details</summary>
+                                        <div style="font-size: 12px; margin: 5px 0;">
+                                            <strong>Inserted:</strong> <?= $prepareResults[$code]['details']['inserted'] ?> records<br>
+                                            <strong>Total Rows:</strong> <?= $prepareResults[$code]['details']['total_rows'] ?>
+                                            <?php if (!empty($prepareResults[$code]['details']['errors'])): ?>
+                                                <br><strong>Errors:</strong>
+                                                <ul style="margin: 5px 0; padding-left: 20px;">
+                                                    <?php foreach (array_slice($prepareResults[$code]['details']['errors'], 0, 5) as $error): ?>
+                                                        <li style="font-size: 11px;"><?= htmlspecialchars($error) ?></li>
+                                                    <?php endforeach; ?>
+                                                    <?php if (count($prepareResults[$code]['details']['errors']) > 5): ?>
+                                                        <li style="font-size: 11px;">... and <?= count($prepareResults[$code]['details']['errors']) - 5 ?> more</li>
+                                                    <?php endif; ?>
+                                                </ul>
+                                            <?php endif; ?>
+                                        </div>
+                                    </details>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -346,22 +406,3 @@ if (isset($_POST['prepare_master']) && $selectedPeriod) {
     <?php endif; ?>
 </body>
 </html>
-
-
-
-Columns table 
-	item detail master = 36417
-	Bom master = 118359
-	STD-RM = 1467
-	Time manufac = 21297
-	Std allocation rate = 3436
-	Indirect allocation master = 1828
-	Indirect allocate rate = 259
-	Allocation basic master = 265
-
-
-Status = ✅
-HTML Tabel Select Item Calculation
- 
-	
-	

@@ -13,9 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['uploads_csv'])){
     $result = uploadCsvAndInsert($conn, 'allocation_basic', 'STDC_Allocation_basic_master', $columns);
 
     if ($result['status']){
-        echo "<div class='alert alert-success'>{$result['message']}</div>";
+        // echo "<div class='alert alert-success'>{$result['message']}</div>";
+        echo "<pre>"; print_r($result); echo "</pre>";
+
     } else {
-        echo "<div class='alert alert-danger'>{$result['message']}</div>";
+        // echo "<div class='alert alert-danger'>{$result['message']}</div>";
+        echo "<pre>"; print_r($result); echo "</pre>";
+
     }
 }
 
@@ -42,25 +46,23 @@ if (is_dir($folderPath)) {
 <body>
     <h3>Allocation basic master</h3>
 
-    <!-- Import Excel Form -->
-    <!-- <div class="importexcel mt-3" id="importForm" style="display: none;"> -->
-    <div class="importexcel mt-3" id="importForm" style="display: block;">
+     <!-- Import Excel Form -->
+    <div class="importexcel mt-3" id="importForm">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Browse File</h5>
+                <h5 class="card-title">Browse .csv File</h5>
                 <form method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <input type="file" name="csv_file" id="csv_file" accept=".csv" class="form-control" required>
                     </div>
                     <button type="submit" name="uploads_csv" class="btn btn-success">Import CSV</button>
-                    <button type="button" class="btn btn-secondary" onclick="hideImportForm()">Cancel</button>
                 </form>
             </div>
         </div>
     </div>
 
-   <div class="class-table">
-        <table border="1" cellpading="8" cellspaing="0">
+    <div class="class-table">
+        <table border="1" cellpading="8" cellspacing="0">
             <thead>
                 <tr>
                     <th>No.</th>
@@ -71,26 +73,26 @@ if (is_dir($folderPath)) {
             <tbody>
                 <?php if (empty($files)): ?>
                     <tr>
-                        <td colspan="3" style="text-align: center; color:red;">
+                        <td colspan="3" style="text-align: center; color: red;">
                             <i class="bi bi-x-lg"></i> No csv file found in this folder.
                         </td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($files as $index => $path):
                         $filename = basename($path);
-                        $dowloadLink  = $webPath . '/' . urldecode($filename);
+                        $downloadLink = $webPath . '/' . urldecode($filename);
                     ?>
                         <tr>
                             <td style="text-align: center;"><?= $index + 1 ?></td>
-                            <td><?= htmlspecialchars($filename) ?></td>
+                            <td><?= htmlspecialchars($filename)?></td>
                             <td style="text-align: center;">
-                                <a href="<?= $dowloadLink ?>" download>
-                                    <i class="bi bi-download"></i> Download
+                                <a href="<?= $downloadLink ?>" download> <i class="bi bi-download"></i>
+                                Download
                                 </a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
-                <?php endif; ?>
+                <?php endif;?>
             </tbody>
         </table>
     </div>

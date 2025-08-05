@@ -1,8 +1,5 @@
 <?php
-// require_once __DIR__ . '/../vendor/autoload.php';
-// use PhpOffice\PhpSpreadsheet\IOFactory;
-// use PhpOffice\PhpSpreadsheet\Spreadsheet;
-// use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+
 set_time_limit(300);    /* 5 mn. */
 
 function checkFileUploaded($conn, $masterCode, $period = null) {
@@ -97,15 +94,17 @@ function uploadCsvAndInsert($conn, $pageKey, $targetTable, $columns, $uploadBase
             $stmtInsert = $conn->prepare($sql);
 
             $conn->beginTransaction();
-            $insertCount = 0;
+            // $insertCount = 0;
         try {
              $rowIndex = 0; //ใช้นับแถว
             //อ่านแต่ละบรรทัดแยกด้วย ,
             while (($data = fgetcsv($handle, 1000, ",")) !== false) {
+                echo '<pre>'; print_r($data); echo '</pre>';
+
                 $rowIndex++;
                 if ($rowIndex === 1) continue;     //ข้ามแถวแรกไปโดยไม่ต้องอ่าน
                 if (count($data) < count($columns)) continue;
-
+ 
                     // เงื่อนไข menu std_cost  ต้องมีการแปลงข้อมูล Std_cost_perunit จาก String to decimal
                     if ($pageKey === 'std_cost'){
                         // แปลง Std_cost_perunit to decimal 
@@ -120,23 +119,37 @@ function uploadCsvAndInsert($conn, $pageKey, $targetTable, $columns, $uploadBase
                         $qtyIndex = array_search('Base_qty', $columns);
                         if($qtyIndex != false) {
                             $raw = trim($data[$qtyIndex]);
-                            $data['$qtyIndex'] = is_numeric($raw) ? (int)$raw : null;
+                            $data[$qtyIndex] = is_numeric($raw) ? (int)$raw : null;
                         }
                     }
 
                     // เงื่อไขของหน้า allocation_basic แปลงstring to tinyint
                     if ($pageKey === 'allocation_basic') {
-                        foreach (['Non_minus', 'Coefficient_limit', 'Std_alloc'] as $colName) {
-                        //แปลงจาก String True/False เป็น tinyint 0/1
-                        $colIndex = array_search($colName, $columns);
-                        if ($colIndex !== false && isset($data[$colIndex])) {
-                            $raw = strtolower(trim($data[$colIndex]));
-                            $data[$colIndex] = ($raw === 'true' || $raw === '1') ? 1 : 0;
+                        // แปลง integer fields
+                        foreach (['Rounding_digit', 'Alloc_adjustment_type'] as $colName) {
+                            $colIndex = array_search($colName, $columns);
+                            if ($colIndex !== false && isset($data[$colIndex])) {
+                                $raw = trim($data[$colIndex] ?? '');
+                                $data[$colIndex] = ($raw === '' || !is_numeric($raw)) ? null : (int)$raw;
+                            }
                         }
+
+                        // แปลง boolean fields
+                        foreach (['Non_minus', 'Coefficient_limit', 'Std_alloc'] as $colName) {
+                            $colIndex = array_search($colName, $columns);
+                            if ($colIndex !== false && isset($data[$colIndex])) {
+                                $raw = strtolower(trim($data[$colIndex] ?? ''));
+                                if ($raw === '') {
+                                    $data[$colIndex] = null;
+                                } else {
+                                    $data[$colIndex] = ($raw === 'true' || $raw === '1' || $raw === 'yes') ? 1 : 0;
+                                }
+                            }
                         }
                     }
 
-                $stmtInsert->execute(array_slice($data, 0, count($columns)));
+
+                    $stmtInsert->execute(array_slice($data, 0, count($columns)));
                 } 
 
             fclose($handle);
@@ -144,7 +157,7 @@ function uploadCsvAndInsert($conn, $pageKey, $targetTable, $columns, $uploadBase
         } catch (Exception $e) {
             $conn->rollBack();      //ยกเลิกหากมี error
             fclose($handle);
-            return ['status' => false, 'nessage' => 'Insert failed: ' . $e->getMessage()];
+            return ['status' => false, 'message' => 'Insert failed: ' . $e->getMessage()];
         }
            
         } else {

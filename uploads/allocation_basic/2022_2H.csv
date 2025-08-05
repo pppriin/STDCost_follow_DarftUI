@@ -259,8 +259,8 @@
 PR50101,Product Cost Labor,0,Time alloc.,COEFF01,Coefficient 01,P0050,Other Indirect Labor,,,,,9,1,Adjust the difference(max. target amount),,,false,false,false,,27/09/2024 11:52,T0001adm2,B-en-g,27/09/2024 11:52,T0001adm2,B-en-g
 PR50102,Product Cost Other,0,Time alloc.,COEFF01,Coefficient 01,P0060,Id. Prod. main exp.,,,,,9,1,Adjust the difference(max. target amount),,,false,false,false,,27/09/2024 11:52,T0001adm2,B-en-g,27/09/2024 11:52,T0001adm2,B-en-g
 PR50103,Product Cost Dep,0,Time alloc.,COEFF01,Coefficient 01,P0070,Other Indirect Depre,,,,,9,1,Adjust the difference(max. target amount),,,false,false,false,,27/09/2024 11:52,T0001adm2,B-en-g,27/09/2024 11:52,T0001adm2,B-en-g
-PR50104,Product Cost Water,0,Time alloc.,COEFF01,Coefficient 01,P0060,Id. Prod. main exp.,,,,,9,1,Adjust the difference(max. target amount),,,false,false,false,,27/09/2024 11:52,T0001adm2,B-en-g,27/09/2024 11:52,T0001adm2,B-en-g
-PR50105,Product Cost Gas,0,Time alloc.,COEFF01,Coefficient 01,P0060,Id. Prod. main exp.,,,,,9,1,Adjust the difference(max. target amount),,,false,false,false,,27/09/2024 11:52,T0001adm2,B-en-g,27/09/2024 11:52,T0001adm2,B-en-g
-PR50106,Product Cost Oil,0,Time alloc.,COEFF01,Coefficient 01,P0060,Id. Prod. main exp.,,,,,9,1,Adjust the difference(max. target amount),,,false,false,false,,27/09/2024 11:52,T0001adm2,B-en-g,27/09/2024 11:52,T0001adm2,B-en-g
-PR50107,Product Cost Elec.,0,Time alloc.,COEFF01,Coefficient 01,P0060,Id. Prod. main exp.,,,,,9,1,Adjust the difference(max. target amount),,,false,false,false,,27/09/2024 11:52,T0001adm2,B-en-g,27/09/2024 11:52,T0001adm2,B-en-g
-PR50108,Fire Insulance,0,Time alloc.,COEFF01,Coefficient 01,P0060,Id. Prod. main exp.,,,,,9,1,Adjust the difference(max. target amount),,,false,false,false,,27/09/2024 11:52,T0001adm2,B-en-g,27/09/2024 11:52,T0001adm2,B-en-g
+,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,

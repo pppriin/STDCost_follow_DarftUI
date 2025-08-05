@@ -42,6 +42,7 @@ if (is_dir($folderPath)) {
     <!-- Bootstrap core CSS -->
     <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <!-- <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script> -->
+
 </head>
 
 <body>
