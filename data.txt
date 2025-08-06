@@ -363,5 +363,110 @@ Columns table
 Status = ✅
 HTML Tabel Select Item Calculation
  
+---------------------------------------------------------------------------------
+6 July   ต้องไปหาวิธีแก้ icon logo ให้ได้ 
+***knowlage 
+	-temp table เป็น table ชั่วคราว “ต้องสร้างใหม่ทุกครั้ง” หมายถึง
+Temp Table ไม่คงอยู่ถาวรในระบบ คุณต้อง CREATE TABLE มันใหม่เสมอทุกครั้งที่จะใช้งาน เพราะมันจะถูกลบทิ้งโดยอัตโนมัติหลัง session/stored procedure จบ
+	-Dummy ข้อมูล ตัวแปร หรือตารางที่สร้างขึ้นมาเพื่อใช้ทดสอบระบบ หรือแทนที่ข้อมูลจริงชั่วคราว
+
+สร้าง procedure SP_STDC_Calculation_List  @FicalYear
+
+/*ตัวอย่างคำสั่ง create temp table in procedure*/
+-- เช็คและลบ temp table เดิม (ถ้ามีอยู่แล้ว)
+IF OBJECT_ID('tempdb..#ItemTemp') IS NOT NULL
+    DROP TABLE #ItemTemp;
+
+-- สร้าง temp table
+CREATE TABLE #ItemTemp (
+    item_code VARCHAR(20),
+    item_name NVARCHAR(100),
+    Status NVARCHAR(20)
+);
+
+-- เพิ่มข้อมูล
+INSERT INTO #ItemTemp (item_code, item_name, Status)
+VALUES   /*เป็นการ dummy ข้อมูล*/
+('2100002052', 'V-BELT W800 SB107', 'Confirmed'),
+('2100002053', 'V-BELT W800 SB108', 'Confirmed'),
+('2100002054', 'V-BELT W800 SB109', 'Confirmed'),
+('2100002055', 'V-BELT W800 SB110', 'Confirmed');
+ 
+-- พี่สน จะมาทำต่อ
+
+
+-- ใช้งานข้อมูล (แสดงผล)
+SELECT * FROM #ItemTemp;
+
+-- ลบ temp table หลังใช้งานเสร็จ
+DROP TABLE #ItemTemp;
+
+
+store procedure ที่ใช้จริง 
+ALTER PROCEDURE [dbo].[SP_STDC_Calculation_List]
+	@FicalYear VARCHAR(20)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	-- routine body goes here, e.g.
+	-- SELECT 'Navicat for SQL Server'
+-- 	check และลบ temp table เดิมถ้ามีอยู่แล้ว
+	IF OBJECT_ID('tempdb..#ItemCalculationTemp') IS NOT NULL
+		DROP TABLE #ItemCalculationTemp;
+		
+	-- 	crete temp TABLE
+	CREATE TABLE #ItemCalculationTemp(
+			item_code VARCHAR(20),
+			item_name NVARCHAR(100),
+			Status NVARCHAR(20)
+	);
+
+
+	-- insert 
+	INSERT INTO #ItemCalculationTemp (item_code, item_name, Status)
+	VALUES
+	('2100002052','V-BELT W800 SB107','Confirmed'),		
+	('2100002053','V-BELT W800 SB108','Confirmed'),		
+	('2100002054','V-BELT W800 SB109','Confirmed'),		
+	('2100002055','V-BELT W800 SB110','Confirmed'),		
+	('2100002056','V-BELT W800 SB111','Confirmed'),		
+	('2100002057','V-BELT W800 SB112','Confirmed'),	
+	('2100002058','V-BELT W800 SB113','Confirmed'),
+	('2100002059','V-BELT W800 SB114','New'),	
+	('2100002060','V-BELT W800 SB115','New'),	
+	('2100002061','V-BELT W800 SB116','New');	
+
+-- พี่สน จะมาทำต่อ
+
+-- ใช้งานข้อมูล (แสดงผล)
+SELECT * FROM #ItemCalculationTemp;
+	
+END
+การดึงข้อมูลมาโชว์
+// เช็คว่าสถานะเตรียมข้อมูลผ่านหรือไม่ (ถ้าใช้ตัวแปรนี้จริง)
+$allSuccess = !empty($prepareResults) && array_reduce($prepareResults, function ($carry, $item) {
+    return $carry && ($item['status'] === '✅');
+}, true);
+
+// ปีงบประมาณที่ใช้ส่งเข้า stored procedure
+$ficalYear = '2025';
+
+try {
+    // เรียก stored procedure
+    $stmt = $conn->prepare("EXEC SP_STDC_Calculation_List @FicalYear = :ficalYear");
+    $stmt->bindParam(':ficalYear', $ficalYear);
+    $stmt->execute();
+
+    // ดึงข้อมูลและเปลี่ยน key ให้เป็นพิมพ์เล็กทั้งหมด
+    $itemCalculations = array_map('array_change_key_case', $stmt->fetchAll(PDO::FETCH_ASSOC));
+    $hasData = !empty($itemCalculations);
+} catch (PDOException $e) {
+    die("Database error: " . $e->getMessage());
+}
+
+//remark
+	loading ระหว่างประมวลผลหลังจากกด Prepare Master
+	loading ระหว่าง start calculation =Run Simulation Please wait...
+	-ยังติดปัญหา simulate_calculation.php= cencelButtonText
 	
 	

@@ -99,7 +99,7 @@ function uploadCsvAndInsert($conn, $pageKey, $targetTable, $columns, $uploadBase
              $rowIndex = 0; //ใช้นับแถว
             //อ่านแต่ละบรรทัดแยกด้วย ,
             while (($data = fgetcsv($handle, 1000, ",")) !== false) {
-                echo '<pre>'; print_r($data); echo '</pre>';
+                // echo '<pre>'; print_r($data); echo '</pre>'; 
 
                 $rowIndex++;
                 if ($rowIndex === 1) continue;     //ข้ามแถวแรกไปโดยไม่ต้องอ่าน

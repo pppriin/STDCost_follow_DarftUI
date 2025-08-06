@@ -45,7 +45,7 @@ if (is_dir($folderPath)) {
                         <input type="file" name="csv_file" id="csv_file" accept=".csv" class="form-control" required>
                     </div>
                     <button type="submit" name="uploads_csv" class="btn btn-success">Import CSV</button>
-                    <button type="button" class="btn btn-secondary" onclick="hideImportForm()">Cancel</button>
+                    <!-- <button type="button" class="btn btn-secondary" onclick="hideImportForm()">Cancel</button> -->
                 </form>
             </div>
         </div>

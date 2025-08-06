@@ -1,397 +1,701 @@
-<?php
-// require_once __DIR__ . '/../vendor/autoload.php';
-// use PhpOffice\PhpSpreadsheet\IOFactory;
-// use PhpOffice\PhpSpreadsheet\Spreadsheet;
-// use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
-set_time_limit(300);    /* 5 mn. */
-
-function checkFileUploaded($conn, $masterCode, $period = null) {
-    if (!$period) return false;
-
-    // เช็คด MasterCode,PeriodCode
-    $stmt = $conn->prepare("SELECT COUNT(*) as count 
-                            FROM STDC_Uploaded_Files 
-                            WHERE MasterCode = :MasterCode AND PeriodCode = :PeriodCode");
-    $stmt->execute(array(':MasterCode' => $masterCode,
-                    ':PeriodCode' => $period));
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $row['count'] > 0;
-}
-
-// ---------- Upload CSV and Insert ----------
-// $pageKey=manuแต่ละตัว
-// $targetTable ชื่อตารางที่จะเก็บในฐานข้อมูล 
-// $columns ชื่อคอลัมน์ที่จะนำจาก csv เข้าไปแยกเก็บไว้
-// $uploadBasePath โฟลเดอร์สำหรับเก็บไฟล์
-function uploadCsvAndInsert($conn, $pageKey, $targetTable, $columns, $uploadBasePath = 'uploads/') {
-    //เช็คการอัพโหลดไฟล์
-    if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
-        return ['status' => false, 'message' => 'No file uploaded or upload error.'];
-    }
-
-    // ตรวจสอบชื่อไฟล์ต้องตั้งชื่อตาม Fical year_Period (YYYY_XH)
-    $originalName = $_FILES['csv_file']['name'];
-    if (!preg_match('/^(\d{4}_[12]H)\.csv$/i', $originalName, $matches)) {
-        return['status' => false, 'message' => 'Invalid file name format. Expected format: YYYY_1H.csv or YYYY_2H.csv'];
-    } 
-
-    $periodCode = $matches[1];
-    
-    try {
-        // INSERT TABLE STDC_Periods
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM STDC_Periods WHERE PeriodCode = :period");
-        $stmt->execute([':period' => $periodCode]);
-        if ($stmt->fetchColumn() == 0) {
-            $insertStmt = $conn->prepare("INSERT INTO STDC_Periods (PeriodCode, NotePeriod) VALUES (:period , NULL)");
-            $insertStmt->execute([':period' => $periodCode]);
-        }
-
-        // สร้างไฟล์ใหม่ไปยังโฟลเดอร์
-        $originalExt = strtolower(pathinfo($_FILES['csv_file']['name'], PATHINFO_EXTENSION));
-        $filename = $periodCode . '.' . $originalExt;
-        $targetPath = $uploadBasePath . $pageKey . '/' . $filename;
-        $targetFile = __DIR__ . '/../' . $targetPath;
-
-        // เตรียมโฟลเดอร์จัดเก็บตาม page  เช่น ถ้า _DIR_ อยู่ที่ projrct/includes จะไปที่ projrct/upload/item_detail/ 
-        $uploadDir = __DIR__ . '/../' . $uploadBasePath . $pageKey . '/';
-        //สร้างโฟลเดอร์ใหม่ถ้ายังไม่มี 
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        // ลบไฟล์เก่าหากมีในระบบ โดยจะดึงข้อมูลที่เคยอัปโหลด MasterCode=$pageKey 
-        $stmt = $conn->prepare("SELECT FilePath FROM STDC_Uploaded_Files WHERE MasterCode = ? AND PeriodCode = ?");
-        $stmt->execute([$pageKey, $periodCode]);
-        if ($row = $stmt->fetch()) {
-            $oldPath = __DIR__ . '/../' . $row['FilePath']; 
-            if (file_exists($oldPath)) {
-                unlink($oldPath);
-            }
-            $conn->prepare("DELETE FROM STDC_Uploaded_Files WHERE MasterCode = ? AND PeriodCode = ?")->execute([$pageKey, $periodCode]);
-        }
-
-        if (!move_uploaded_file($_FILES['csv_file']['tmp_name'], $targetFile)) {
-            return ['status' => false, 'message' => 'Failed to move uploaded file.'];
-        }
-
-        // Truncate ตารางก่อน Insert ใหม่ 
-        $conn->exec("TRUNCATE TABLE $targetTable");
-
-        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-        if ($extension === 'csv') {
-            // อ่านข้อมูลจาก CSV และ Insert เปิดไฟล์ด้วยfopen
-            if (($handle = fopen($targetFile, "r")) !== false) {
-                //insert statement($placeholders) กำหนด? เท่ากับจำนวนคอลัมน์ที่มีอยู่ใน table
-                $placeholders = implode(',', array_fill(0, count($columns), '?'));
-                $sql = "INSERT INTO $targetTable (" . implode(',', $columns) . ") VALUES ($placeholders)";
-                $stmtInsert = $conn->prepare($sql);
-
-                $conn->beginTransaction();
-                $insertCount = 0;
-                $errorCount = 0;
-                
-                try {
-                    $rowIndex = 0; //ใช้นับแถว
-                    //อ่านแต่ละบรรทัดแยกด้วย ,
-                    while (($data = fgetcsv($handle, 1000, ",")) !== false) {
-                        $rowIndex++;
-                        if ($rowIndex === 1) continue;     //ข้ามแถวแรกไดยไม่ต้องอ่าน
-                        
-                        // ตรวจสอบจำนวน columns
-                        if (count($data) < count($columns)) {
-                            error_log("Row $rowIndex: Insufficient columns. Expected: " . count($columns) . ", Got: " . count($data));
-                            $errorCount++;
-                            continue;
-                        }
-
-                        // เงื่อนไข menu std_cost  ต้องมีการแปลงข้อมูล Std_cost_perunit จาก String to decimal
-                        if ($pageKey === 'std_cost') {
-                            // แปลง Std_cost_perunit to decimal 
-                            $colIndex = array_search('Std_cost_perunit', $columns);
-                            if ($colIndex !== false) {
-                                $raw = trim(str_replace(',', '', $data[$colIndex] ?? '')); // ลบ comma
-                                $data[$colIndex] = (is_numeric($raw) && $raw !== '') ? round((float)$raw, 4) : null;
-                            }
-
-                            // แปลง Base_qty เป็น int - แก้ไข bug จากเดิม
-                            $qtyIndex = array_search('Base_qty', $columns);
-                            if ($qtyIndex !== false) {
-                                $raw = trim($data[$qtyIndex] ?? '');
-                                $data[$qtyIndex] = (is_numeric($raw) && $raw !== '') ? (int)$raw : null;
-                            }
-                        }
-
-                        // เงื่อไขของหน้า allocation_basic แปลงstring to tinyint
-                        if ($pageKey === 'allocation_basic') {
-                            // แปลง integer fields
-                            foreach (['Rounding_digit', 'Alloc_adjustment_type'] as $colName) {
-                                $colIndex = array_search($colName, $columns);
-                                if ($colIndex !== false && isset($data[$colIndex])) {
-                                    $raw = trim($data[$colIndex] ?? '');
-                                    $data[$colIndex] = ($raw === '' || !is_numeric($raw)) ? null : (int)$raw;
-                                }
-                            }
-                            
-                            // แปลง boolean fields (tinyint)
-                            foreach (['Non_minus', 'Coefficient_limit', 'Std_alloc'] as $colName) {
-                                $colIndex = array_search($colName, $columns);
-                                if ($colIndex !== false && isset($data[$colIndex])) {
-                                    $raw = strtolower(trim($data[$colIndex] ?? ''));
-                                    if ($raw === '') {
-                                        $data[$colIndex] = null;
-                                    } else {
-                                        $data[$colIndex] = ($raw === 'true' || $raw === '1' || $raw === 'yes' || $raw === 'y') ? 1 : 0;
-                                    }
-                                }
-                            }
-                        }
-
-                        // ทำความสะอาดข้อมูลทั่วไป - แปลง empty string เป็น null
-                        for ($i = 0; $i < count($columns); $i++) {
-                            if (isset($data[$i]) && trim($data[$i]) === '') {
-                                $data[$i] = null;
-                            }
-                        }
-
-                        try {
-                            $stmtInsert->execute(array_slice($data, 0, count($columns)));
-                            $insertCount++;
-                        } catch (Exception $e) {
-                            $errorCount++;
-                            error_log("Row $rowIndex Insert Error: " . $e->getMessage());
-                            error_log("Data: " . print_r(array_slice($data, 0, count($columns)), true));
-                            // ไม่ rollback ทันที แต่ให้ทำต่อไป
-                        }
-                    } 
-
-                    fclose($handle);
-                    
-                    if ($insertCount > 0) {
-                        $conn->commit();
-                        $message = "Upload success. Inserted: $insertCount rows";
-                        if ($errorCount > 0) {
-                            $message .= ", Errors: $errorCount rows";
-                        }
-                    } else {
-                        $conn->rollBack();
-                        return ['status' => false, 'message' => "No data inserted. Total errors: $errorCount"];
-                    }
-                    
-                } catch (Exception $e) {
-                    $conn->rollBack();      //ยกเลิกหากมี error
-                    fclose($handle);
-                    return ['status' => false, 'message' => 'Insert failed: ' . $e->getMessage()];
-                }
-                   
-            } else {
-                return ['status' => false, 'message' => 'Unable to open uploaded CSV file.'];
-            }
-        } else {
-            return ['status' => false, 'message' => 'Unsupported file format.'];
-        }
-
-        // บันทึกข้อมูลไฟล์ที่อัปโหลดไว้
-        $stmt = $conn->prepare("INSERT INTO STDC_Uploaded_Files (MasterCode, File_Name, FilePath , PeriodCode) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$pageKey, $filename, $targetPath, $periodCode]);
-
-        return ['status' => true, 'message' => $message ?? 'Upload and insert success.'];
-        
-    } catch (PDOException $e) {
-        return ['status' => false, 'message' => 'Database error: ' . $e->getMessage()];
-    } catch (Exception $e) {
-        return ['status' => false, 'message' => 'Error: ' . $e->getMessage()];
-    }
-}
-
-?>
-
-
-
-<?php
-require_once 'config/configdb.php';
-require_once 'includes/functions.php';
-
-$message = '';
-$messageType = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['uploads_csv'])) {
-    $columns = array(
-        'Alloc_AC_CD', 'Alloc_AC_name', 'Alloc_basis_type', 'Alloc_basis_type_name', 'Coefficient_CD',
-        'Coefficient_name', 'Cost_element_CD', 'Cost_element_name', 'Indirectly_alloc_AC_CD', 'Indirectly_alloc_AC_name',
-        'Rounding_type', 'Rounding_type_name', 'Rounding_digit', 'Alloc_adjustment_type', 'Alloc_adjustmenttype',
-        'Asset_type', 'Asset_type_name', 'Non_minus', 'Coefficient_limit', 'Std_alloc',
-        'Notes', 'Entry_time', 'Entry_user_CD', 'Entry_user_name', 'Update_time',
-        'Update_user_CD', 'Update_user_name'
-    );
-    
-    $result = uploadCsvAndInsert($conn, 'allocation_basic', 'STDC_Allocation_basic_master', $columns);
-    
-    if ($result['status']) {
-        $message = $result['message'];
-        $messageType = 'success';
-    } else {
-        $message = $result['message'];
-        $messageType = 'error';
-    }
-}
-
-$pageKey = $_GET['pageKey'] ?? 'allocation_basic';
-$folderPath = __DIR__ . '/../uploads/' . $pageKey;
-$webPath = 'uploads/' . $pageKey;
-
-$files = [];
-if (is_dir($folderPath)) {
-    $files = glob($folderPath . '/*.csv');
-    // เรียงตามวันที่แก้ไขล่าสุด
-    usort($files, function($a, $b) {
-        return filemtime($b) - filemtime($a);
-    });
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Allocation basic master</title>
-    <link rel="stylesheet" href="css/item_detail.css">
+    <title>Simulate Calculation</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
     <style>
-        .alert {
+        /* Original CSS */
+        .top-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+        }
+
+        .form-inline {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-label {
+            padding: 5px 10px;
+            font-size: 18px;
+            font-weight: 600;
+            white-space: nowrap;
+            margin-right: 4px;
+        }
+
+        .form-select {
+            padding: 8px 12px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            background-color: white;
+            min-width: 180px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .table-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .table-container {
+            max-width: 1000px;
+            width: 100%;
+            padding: 10px;
+            overflow: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ccc;
+        }
+
+        tbody, td, tfoot, th, thead, tr {
+            border-width: 1px;
+        }
+
+        thead {
+            background-color: #9f9f9f;
+            text-align: center;
+        }
+
+        th {
+            padding: 15px 16px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 16px;
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tbody tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .status-success {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .status-error {
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .status-warning {
+            color: #ffc107;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .status-processing {
+            color: #17a2b8;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        /* Main Spinner */
+        .spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* Current Process Display */
+        .current-process {
+            background: #f8f9fa;
+            border: 2px solid #007bff;
+            border-radius: 8px;
             padding: 15px;
             margin-bottom: 20px;
-            border: 1px solid transparent;
-            border-radius: 4px;
         }
-        .alert-success {
-            color: #3c763d;
-            background-color: #dff0d8;
-            border-color: #d6e9c6;
+
+        .current-process h4 {
+            color: #007bff;
+            margin: 0 0 10px 0;
+            font-size: 16px;
         }
-        .alert-error {
-            color: #a94442;
-            background-color: #f2dede;
-            border-color: #ebccd1;
-        }
-        .file-info {
-            font-size: 0.9em;
+
+        .current-process p {
+            margin: 0;
             color: #666;
+            font-size: 14px;
         }
-        .form-validation {
-            margin-top: 10px;
+
+        /* Small inline spinner for table rows */
+        .inline-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #17a2b8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
         }
-        .form-validation p {
-            margin: 5px 0;
-            font-size: 0.9em;
-            color: #666;
+
+        /* Processing row highlight */
+        .processing-row {
+            background-color: #e7f3ff !important;
+            border-left: 4px solid #007bff;
+        }
+
+        /* Completed row highlight */
+        .completed-row {
+            background-color: #d4edda !important;
+            border-left: 4px solid #28a745;
+        }
+
+        /* Error row highlight */
+        .error-row {
+            background-color: #f8d7da !important;
+            border-left: 4px solid #dc3545;
+        }
+
+        /* Button Loading State */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .top-controls {
+                justify-content: center;
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .form-label {
+                font-size: 14px;
+            }
+
+            .form-select {
+                min-width: 150px;
+                font-size: 13px;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            .table-wrapper {
+                padding: 10px;
+            }
+
+            th, td {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+
+            .loading-content {
+                padding: 30px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .top-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-inline {
+                justify-content: center;
+            }
+
+            .form-select {
+                min-width: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
-    <h3>Allocation basic master</h3>
-    
-    <!-- Display Message -->
-    <?php if ($message): ?>
-        <div class="alert alert-<?= $messageType ?>">
-            <?= htmlspecialchars($message) ?>
-        </div>
-    <?php endif; ?>
+    <h2>Simulate Calculation</h2>
 
-    <!-- Import Excel Form -->
-    <div class="importexcel mt-3" id="importForm">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Browse .csv File</h5>
-                <form method="POST" enctype="multipart/form-data" id="uploadForm">
-                    <div class="mb-3">
-                        <input type="file" name="csv_file" id="csv_file" accept=".csv" class="form-control" required>
-                    </div>
-                    <div class="form-validation">
-                        <p><strong>File naming format:</strong> YYYY_1H.csv or YYYY_2H.csv</p>
-                        <p><strong>Example:</strong> 2024_1H.csv, 2024_2H.csv</p>
-                        <p><strong>Required columns (<?= count($columns) ?>):</strong></p>
-                        <p style="font-size: 0.8em; color: #888;">
-                            <?= implode(', ', array_slice($columns, 0, 8)) ?>...
-                        </p>
-                    </div>
-                    <button type="submit" name="uploads_csv" class="btn btn-success">Import CSV</button>
-                </form>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loadingText">Loading Data</div>
+            <div class="loading-subtext" id="loadingSubtext">Please wait while we process your request</div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <!-- Current Process Display -->
+            <div class="current-process" id="currentProcess" style="display: none;">
+                <h4 id="currentProcessTitle">Processing...</h4>
+                <p id="currentProcessDesc">Validating and inserting data...</p>
+            </div>
+
+            <div style="color: #999; font-size: 12px;">
+                <span id="processCounter">0 / 0</span> processes completed
             </div>
         </div>
     </div>
 
-    <div class="class-table">
-        <table border="1" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Allocation Basic Master</th>
-                    <th>File Info</th>
-                    <th>Download</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($files)): ?>
+    <div class="top-controls">
+        <form method="GET" class="form-inline" id="periodForm">
+            <input type="hidden" name="page" value="simulate_calculation">
+            <label for="period" class="form-label">Fiscal Year-Period:</label>
+            <select class="form-select" name="period" id="period" onchange="handlePeriodChange(this)">
+                <option value="2024-01" selected>2024-01</option>
+                <option value="2024-02">2024-02</option>
+                <option value="2024-03">2024-03</option>
+                <option value="2024-04">2024-04</option>
+                <option value="2024-05">2024-05</option>
+            </select>
+        </form>
+
+        <form method="POST" class="form-inline" id="prepareMasterForm">
+            <input type="hidden" name="period" value="2024-01">
+            <button type="submit" name="prepare_master" class="btn btn-info" id="prepareMasterBtn" onclick="handlePrepareMaster(event)">
+                Prepare Master
+            </button>
+        </form>
+    </div>
+
+    <!-- Results Table -->
+    <div class="table-wrapper">
+        <div class="table-container">
+            <table>
+                <thead>
                     <tr>
-                        <td colspan="4" style="text-align: center; color: red;">
-                            <i class="bi bi-x-lg"></i> No csv file found in this folder.
-                        </td>
+                        <th>No.</th>
+                        <th>Process</th>
+                        <th>Status</th>
+                        <th>Message</th>
                     </tr>
-                <?php else: ?>
-                    <?php foreach ($files as $index => $path):
-                        $filename = basename($path);
-                        $downloadLink = $webPath . '/' . urlencode($filename);
-                        $fileSize = filesize($path);
-                        $fileDate = date('Y-m-d H:i:s', filemtime($path));
-                        $fileSizeFormatted = $fileSize > 1024 ? round($fileSize/1024, 2) . ' KB' : $fileSize . ' bytes';
-                    ?>
-                        <tr>
-                            <td style="text-align: center;"><?= $index + 1 ?></td>
-                            <td><?= htmlspecialchars($filename) ?></td>
-                            <td class="file-info">
-                                Size: <?= $fileSizeFormatted ?><br>
-                                Modified: <?= $fileDate ?>
-                            </td>
-                            <td style="text-align: center;">
-                                <a href="<?= $downloadLink ?>" download>
-                                    <i class="bi bi-download"></i>
-                                    Download
-                                </a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="resultsTableBody">
+                    <tr id="row-1">
+                        <td style="text-align: center;">1</td>
+                        <td>ITEM Detail Master</td>
+                        <td style="text-align: center;" class="status-warning">⏳</td>
+                        <td>Ready for validation</td>
+                    </tr>
+                    <tr id="row-2">
+                        <td style="text-align: center;">2</td>
+                        <td>BOM_master</td>
+                        <td style="text-align: center;" class="status-warning">⏳</td>
+                        <td>Ready for validation</td>
+                    </tr>
+                    <tr id="row-3">
+                        <td style="text-align: center;">3</td>
+                        <td>STD_COST RM</td>
+                        <td style="text-align: center;" class="status-warning">⏳</td>
+                        <td>Ready for validation</td>
+                    </tr>
+                    <tr id="row-4">
+                        <td style="text-align: center;">4</td>
+                        <td>Time Manufacturing</td>
+                        <td style="text-align: center;" class="status-error">❌</td>
+                        <td>File not found</td>
+                    </tr>
+                    <tr id="row-5">
+                        <td style="text-align: center;">5</td>
+                        <td>Std allocation rate</td>
+                        <td style="text-align: center;" class="status-warning">⏳</td>
+                        <td>Ready for validation</td>
+                    </tr>
+                    <tr id="row-6">
+                        <td style="text-align: center;">6</td>
+                        <td>Indirect allocation master</td>
+                        <td style="text-align: center;" class="status-warning">⏳</td>
+                        <td>Ready for validation</td>
+                    </tr>
+                    <tr id="row-7">
+                        <td style="text-align: center;">7</td>
+                        <td>Indirect allocat rate</td>
+                        <td style="text-align: center;" class="status-error">❌</td>
+                        <td>Error: Column count mismatch - CSV has 8 columns, Table needs 10 columns</td>
+                    </tr>
+                    <tr id="row-8">
+                        <td style="text-align: center;">8</td>
+                        <td>Allocation basic master</td>
+                        <td style="text-align: center;" class="status-warning">⏳</td>
+                        <td>Ready for validation</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        // Client-side validation
-        document.getElementById('csv_file').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const fileName = file.name;
-                const pattern = /^(\d{4}_[12]H)\.csv$/i;
+        // Global variables
+        let isProcessing = false;
+        let processQueue = [];
+        let currentProcessIndex = 0;
+        let totalProcesses = 0;
+
+        // Menu items data (matching PHP array)
+        const menuItems = [
+            { id: 'item_detail', name: 'ITEM Detail Master', rowId: 1 },
+            { id: 'bom_master', name: 'BOM_master', rowId: 2 },
+            { id: 'std_cost', name: 'STD_COST RM', rowId: 3 },
+            { id: 'time_manufacturing', name: 'Time Manufacturing', rowId: 4 },
+            { id: 'std_allocation', name: 'Std allocation rate', rowId: 5 },
+            { id: 'indirect_allocation_master', name: 'Indirect allocation master', rowId: 6 },
+            { id: 'indirect_allocation', name: 'Indirect allocat rate', rowId: 7 },
+            { id: 'allocation_basic', name: 'Allocation basic master', rowId: 8 }
+        ];
+
+        // Loading functions
+        function showLoading(text = 'Loading Data', subtext = 'Please wait while we process your request') {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            const loadingSubtext = document.getElementById('loadingSubtext');
+            
+            loadingText.textContent = text;
+            loadingSubtext.textContent = subtext;
+            overlay.classList.add('show');
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('show');
+        }
+
+        function updateProgress(current, total) {
+            const progressBar = document.getElementById('progressBar');
+            const counter = document.getElementById('processCounter');
+            
+            const percentage = (current / total) * 100;
+            progressBar.style.width = percentage + '%';
+            counter.textContent = `${current} / ${total}`;
+        }
+
+        function showCurrentProcess(processName, description) {
+            const currentProcess = document.getElementById('currentProcess');
+            const title = document.getElementById('currentProcessTitle');
+            const desc = document.getElementById('currentProcessDesc');
+            
+            title.textContent = processName;
+            desc.textContent = description;
+            currentProcess.style.display = 'block';
+        }
+
+        function hideCurrentProcess() {
+            const currentProcess = document.getElementById('currentProcess');
+            currentProcess.style.display = 'none';
+        }
+
+        // Table row manipulation
+        function updateRowStatus(rowId, status, message, isProcessing = false) {
+            const row = document.getElementById(`row-${rowId}`);
+            if (!row) return;
+
+            const statusCell = row.cells[2];
+            const messageCell = row.cells[3];
+            
+            // Remove all status classes
+            row.classList.remove('processing-row', 'completed-row', 'error-row');
+            statusCell.className = '';
+            
+            if (isProcessing) {
+                row.classList.add('processing-row');
+                statusCell.classList.add('status-processing');
+                statusCell.innerHTML = '<span class="inline-spinner"></span>🔄';
+                messageCell.textContent = 'Processing...';
+            } else {
+                statusCell.innerHTML = status;
+                messageCell.textContent = message;
                 
-                if (!pattern.test(fileName)) {
-                    alert('Invalid file name format!\nExpected format: YYYY_1H.csv or YYYY_2H.csv\nExample: 2024_1H.csv');
-                    e.target.value = '';
+                if (status === '✅') {
+                    row.classList.add('completed-row');
+                    statusCell.classList.add('status-success');
+                } else if (status === '❌') {
+                    row.classList.add('error-row');
+                    statusCell.classList.add('status-error');
+                } else {
+                    statusCell.classList.add('status-warning');
                 }
             }
+        }
+
+        // Handle period change
+        function handlePeriodChange(selectElement) {
+            if (isProcessing) return;
+            
+            const form = document.getElementById('periodForm');
+            const selectedPeriod = selectElement.value;
+            
+            selectElement.disabled = true;
+            showLoading('Loading Period Data', `Switching to period: ${selectedPeriod}`);
+            
+            setTimeout(() => {
+                // In real implementation, this would submit the form
+                // form.submit();
+                hideLoading();
+                selectElement.disabled = false;
+            }, 1500);
+        }
+
+        // Simulate individual process
+        function simulateProcess(item, index) {
+            return new Promise((resolve) => {
+                const processingTime = Math.random() * 2000 + 1000; // 1-3 seconds
+                const successRate = Math.random();
+                
+                // Update UI to show processing
+                updateRowStatus(item.rowId, '', '', true);
+                showCurrentProcess(item.name, 'Validating CSV structure and inserting data...');
+                
+                setTimeout(() => {
+                    // Simulate different outcomes
+                    if (item.id === 'time_manufacturing' || item.id === 'indirect_allocation') {
+                        // Simulate files that have errors
+                        updateRowStatus(item.rowId, '❌', 'File not found');
+                    } else if (successRate < 0.8) {
+                        // 80% success rate
+                        const recordCount = Math.floor(Math.random() * 2000) + 100;
+                        const skippedCount = Math.floor(Math.random() * 5);
+                        let message = `Success - ${recordCount.toLocaleString()} records inserted`;
+                        if (skippedCount > 0) {
+                            message += ` (${skippedCount} rows skipped)`;
+                        }
+                        updateRowStatus(item.rowId, '✅', message);
+                    } else {
+                        // Simulate error
+                        updateRowStatus(item.rowId, '❌', 'Error: Column count mismatch');
+                    }
+                    
+                    resolve();
+                }, processingTime);
+            });
+        }
+
+        // Handle prepare master with sequential processing
+        async function handlePrepareMaster(event) {
+            event.preventDefault();
+            
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            const button = document.getElementById('prepareMasterBtn');
+            
+            // Update button state
+            button.classList.add('btn-loading');
+            button.innerHTML = '<span style="opacity: 0;">Prepare Master</span>';
+            button.disabled = true;
+            
+            // Initialize processing
+            processQueue = menuItems.filter(item => 
+                item.id !== 'time_manufacturing' && item.id !== 'indirect_allocation'
+            );
+            totalProcesses = processQueue.length;
+            currentProcessIndex = 0;
+            
+            showLoading('Preparing Master Data', 'Starting validation process...');
+            updateProgress(0, totalProcesses);
+            
+            // Process each item sequentially
+            for (let i = 0; i < processQueue.length; i++) {
+                const item = processQueue[i];
+                currentProcessIndex = i;
+                
+                updateProgress(i, totalProcesses);
+                await simulateProcess(item, i);
+                
+                // Small delay between processes
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            
+            // Complete processing
+            updateProgress(totalProcesses, totalProcesses);
+            hideCurrentProcess();
+            
+            setTimeout(() => {
+                hideLoading();
+                
+                // Reset button state
+                button.classList.remove('btn-loading');
+                button.innerHTML = 'Prepare Master';
+                button.disabled = false;
+                isProcessing = false;
+                
+                // In real implementation, you would submit the form here
+                // document.getElementById('prepareMasterForm').submit();
+            }, 1000);
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            hideLoading();
+            
+            // Reset states
+            const button = document.getElementById('prepareMasterBtn');
+            const select = document.getElementById('period');
+            
+            if (button) {
+                button.classList.remove('btn-loading');
+                button.innerHTML = 'Prepare Master';
+                button.disabled = false;
+            }
+            
+            if (select) {
+                select.disabled = false;
+            }
+            
+            isProcessing = false;
         });
-        
-        // Form submission confirmation
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            const file = document.getElementById('csv_file').files[0];
-            if (file) {
-                const confirmMsg = `Are you sure you want to upload "${file.name}"?\n\nThis will replace all existing data in the allocation basic master table.`;
-                if (!confirm(confirmMsg)) {
-                    e.preventDefault();
-                }
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && isProcessing) {
+                // Restore loading state if user comes back during processing
+                showLoading('Processing Master Data', 'Please wait while we complete the process...');
             }
         });
     </script>
+
 </body>
 </html>

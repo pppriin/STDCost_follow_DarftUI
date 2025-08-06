@@ -13,12 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['uploads_csv'])){
     $result = uploadCsvAndInsert($conn, 'allocation_basic', 'STDC_Allocation_basic_master', $columns);
 
     if ($result['status']){
-        // echo "<div class='alert alert-success'>{$result['message']}</div>";
-        echo "<pre>"; print_r($result); echo "</pre>";
+        echo "<div class='alert alert-success'>{$result['message']}</div>";
+        // echo "<pre>"; print_r($result); echo "</pre>";
 
     } else {
-        // echo "<div class='alert alert-danger'>{$result['message']}</div>";
-        echo "<pre>"; print_r($result); echo "</pre>";
+        echo "<div class='alert alert-danger'>{$result['message']}</div>";
+        // echo "<pre>"; print_r($result); echo "</pre>";
 
     }
 }
