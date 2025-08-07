@@ -183,7 +183,7 @@ function processDataByPageKey($pageKey, $data, $columns)
 
 $selectedPeriod = $_GET['period'] ?? $periods[0] ?? null;
 
-// Handle Prepare Master button click
+// Handle Prepare Master button click and process bar
 $prepareResults = [];
 if (isset($_POST['prepare_master']) && $selectedPeriod) {
     foreach ($menu_items as $code => $title) {
@@ -191,10 +191,15 @@ if (isset($_POST['prepare_master']) && $selectedPeriod) {
     }
 }
 
-$hasSuccess = false;
+// การทำงานประมวลผลเพื่อเรียกใช้งาน select item cal show
+$hasSuccess = true;
 foreach ($prepareResults as $res) {
-    if (isset($res['status']) && $res['status'] === '✅') {
-        $hasSuccess = true;
+    // if status is not ✅ or  have message->error
+    if (
+        !isset($res['status']) && $res['status'] !== '✅' ||
+        (isset($res['message']) && preg_match('/error|invalid|mismatch|fail/i', $res['message']))
+        ) {
+        $hasSuccess = false;
         break;
     }
 }

@@ -169,159 +169,104 @@ tbody tr:hover {
         color: #dc3545;
     }
 
-/* Loading */
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
+/* Loading Overlay - เพิ่ม backdrop สำหรับเบลอพื้นหลัง */
+.loader-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5); /* สีดำโปร่งแสง */
+    backdrop-filter: blur(4px); /* เบลอพื้นหลัง */
+    -webkit-backdrop-filter: blur(4px); /* สำหรับ Safari */
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
 
-        .loading-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
+/* Loading Spinner - ปรับแต่งให้แสดงกึ่งกลาง */
+/* Loading Overlay - เพิ่ม backdrop สำหรับเบลอพื้นหลังเบาๆ */
+.loader-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.7); /* สีขาวโปร่งแสงเบาๆ */
+    backdrop-filter: blur(1.5px); /* เบลอพื้นหลังเบาๆ */
+    -webkit-backdrop-filter: blur(1.5px); /* สำหรับ Safari */
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
 
-        .loading-content {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 90%;
-        }
+/* Loading Spinner - ขนาดใหญ่ขึ้นเพื่อให้มองเห็นชัดเจน */
+.loader {
+    display: none;
+    --d: 28px; /* เพิ่มขนาดให้ใหญ่ขึ้น */
+    width: 6px; /* เพิ่มความหนาของจุด */
+    height: 6px;
+    border-radius: 50%;
+    color: #25b09b;
+    box-shadow:
+        calc(1*var(--d)) calc(0*var(--d)) 0 0,
+        calc(0.707*var(--d)) calc(0.707*var(--d)) 0 1px,
+        calc(0*var(--d)) calc(1*var(--d)) 0 2px,
+        calc(-0.707*var(--d)) calc(0.707*var(--d)) 0 3px,
+        calc(-1*var(--d)) calc(0*var(--d)) 0 4px,
+        calc(-0.707*var(--d)) calc(-0.707*var(--d))0 5px,
+        calc(0*var(--d)) calc(-1*var(--d)) 0 6px;
+    animation: l27 1s infinite steps(8);
+    z-index: 10000;
+    /* เพิ่ม drop shadow ให้ loader มองเห็นชัดขึ้น */
+    filter: drop-shadow(0 0 3px rgba(37, 176, 155, 0.5));
+}
 
-        /* Main Spinner */
-        .spinner {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 20px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #007bff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
+@keyframes l27 {
+    100% {
+        transform: rotate(1turn)
+    }
+}
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+/* เมื่อแสดง loader ให้แสดง overlay ด้วย */
+.loader-overlay.show {
+    display: flex;
+}
 
-        .loading-text {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
+.loader.show {
+    display: block;
+}
 
-        .loading-subtext {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
-        }
+/* Alternative: ถ้าต้องการใช้ loader แบบเดิมที่อยู่กึ่งกลางโดยไม่ต้องมี overlay แยก */
+.loader.centered {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    --d: 22px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    color: #25b09b;
+    box-shadow:
+        calc(1*var(--d)) calc(0*var(--d)) 0 0,
+        calc(0.707*var(--d)) calc(0.707*var(--d)) 0 1px,
+        calc(0*var(--d)) calc(1*var(--d)) 0 2px,
+        calc(-0.707*var(--d)) calc(0.707*var(--d)) 0 3px,
+        calc(-1*var(--d)) calc(0*var(--d)) 0 4px,
+        calc(-0.707*var(--d)) calc(-0.707*var(--d))0 5px,
+        calc(0*var(--d)) calc(-1*var(--d)) 0 6px;
+    animation: l27 1s infinite steps(8);
+    z-index: 10000;
+}
 
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            height: 8px;
-            background-color: #e9ecef;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #007bff, #0056b3);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-
-        /* Current Process Display */
-        .current-process {
-            background: #f8f9fa;
-            border: 2px solid #007bff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .current-process h4 {
-            color: #007bff;
-            margin: 0 0 10px 0;
-            font-size: 16px;
-        }
-
-        .current-process p {
-            margin: 0;
-            color: #666;
-            font-size: 14px;
-        }
-
-        /* Small inline spinner for table rows */
-        .inline-spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #17a2b8;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        /* Processing row highlight */
-        .processing-row {
-            background-color: #e7f3ff !important;
-            border-left: 4px solid #007bff;
-        }
-
-        /* Completed row highlight */
-        .completed-row {
-            background-color: #d4edda !important;
-            border-left: 4px solid #28a745;
-        }
-
-        /* Error row highlight */
-        .error-row {
-            background-color: #f8d7da !important;
-            border-left: 4px solid #dc3545;
-        }
-
-        /* Button Loading State */
-        .btn-loading {
-            position: relative;
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        .btn-loading::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            top: 50%;
-            left: 50%;
-            margin-left: -8px;
-            margin-top: -8px;
-            border: 2px solid transparent;
-            border-top: 2px solid #ffffff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
+/* เพิ่มเอฟเฟกต์เบาๆ ให้กับ body เมื่อ loading */
+body.loading {
+    overflow: hidden;
+}
 
 
 /* Responsive Design */

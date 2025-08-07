@@ -18,36 +18,16 @@ require_once 'includes/function_simulate.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="css/simulate.css">
+
 </head>
 
 <body>
 
+<div class="loader-overlay" id="loader-overlay">
+    <div class="loader" id="loader"></div>
+</div>
     <h2>Simulate Calculation</h2>
-    <!-- Loading Overlay -->
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <div class="loading-text" id="loadingText">Loading Data</div>
-            <div class="loading-subtext" id="loadingSubtext">Please wait while we process your request</div>
-
-            <!-- Progress Bar -->
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-
-            <!-- Current Process Display -->
-            <div class="current-process" id="currentProcess" style="display: none;">
-                <h4 id="currentProcessTitle">Processing...</h4>
-                <p id="currentProcessDesc">Validating and inserting data...</p>
-            </div>
-
-            <div style="color: #999; font-size: 12px;">
-                <span id="processCounter">0 / 0</span> processes completed
-            </div>
-        </div>
-    </div>
-
+    
     <div class="top-controls">
         <form method="GET" class="form-inline">
             <input type="hidden" name="page" value="simulate_calculation">
@@ -68,9 +48,12 @@ require_once 'includes/function_simulate.php';
                 <button type="submit" name="prepare_master" class="btn btn-info" id="prepareMasterBtn">Prepare Master</button>
             </form>
 
+            
             <!-- Results Table -->
             <div class="table-wrapper">
                 <div class="table-container">
+                    <!-- <div class="loader" id="loader"></div> -->
+                    
                     <table>
                         <thead>
                             <tr>
@@ -144,7 +127,7 @@ require_once 'includes/function_simulate.php';
     </div>
 
     <!-- select item cal -->
-    <?php if ($hasSuccess): ?>
+    <?php if ($hasSuccess && !empty($prepareResults)): ?>
         <h3>Select Item Calculation</h3>
 
         <div class="form-inline">
@@ -160,18 +143,52 @@ require_once 'includes/function_simulate.php';
     <?php endif; ?>
 
     <script>
-        // document.getElementById('prepareForm').addEventListener('submit', function(e) {
-        //     // แสดง loading popup ก่อน form submit
-        //     Swal.fire({
-        //         title: 'กำลังประมวลผล...',
-        //         text: 'ระบบกำลังดำเนินการ Prepare Master',
-        //         allowOutsideClick: false,
-        //         allowEscapeKey: false,
-        //         didOpen: () => {
-        //             Swal.showLoading();
-        //         }
-        //     });
-        // });
+        // Function to show the loader and overlay,blur effect
+        function showLoader() {
+            const loader = document.getElementById('loader');
+            const overlay = document.getElementById('loader-overlay');
+            
+            if (overlay && loader) {
+                overlay.classList.add('show');
+                loader.classList.add('show');
+                document.body.classList.add('loading');
+            }
+        }
+
+        // Function to hide the loader
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            const overlay = document.getElementById('loader-overlay');
+            
+            if (overlay && loader) {
+                overlay.classList.remove('show');
+                loader.classList.remove('show');
+                document.body.classList.remove('loading');
+            }
+        }
+
+        // Add an event listener to the form to show the loader on submit
+        document.addEventListener('DOMContentLoaded', function() {
+            const prepareForm = document.querySelector('form[method="POST"]');
+            if (prepareForm) {
+                prepareForm.addEventListener('submit', function() {
+                    showLoader();
+                });
+            }
+        });
+
+        // Hide the loader when the page finishes loading
+        window.addEventListener('load', function() {
+            hideLoader();
+        });
+
+        // ถ้าต้องการซ่อน loader เมื่อคลิกที่ overlay (optional)
+        document.getElementById('loader-overlay')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideLoader();
+            }
+        });
+
 
         document.getElementById('startCalcBtn').addEventListener('click', function() {
             const checkboxes = document.querySelectorAll('.cal-checkbox:checked');
@@ -186,7 +203,7 @@ require_once 'includes/function_simulate.php';
                 return;
             }
 
-            // ตรวจสอบว่ามีรายการ Confirmed หรือไม่
+        //     // ตรวจสอบว่ามีรายการ Confirmed หรือไม่
             let hasConfirmed = false;
             checkboxes.forEach(cb => {
                 if (cb.dataset.status.trim().toLowerCase() === 'confirmed') {
@@ -211,10 +228,10 @@ require_once 'includes/function_simulate.php';
                 startCalculation();
             }
 
-            // 🚀 ดำเนินการ Start Calculation ต่อได้ที่นี่ เช่น:
-            // alert("เริ่มการคำนวณแล้ว... (demo)");
+        // 🚀 ดำเนินการ Start Calculation ต่อได้ที่นี่ เช่น:
+        //alert("เริ่มการคำนวณแล้ว... (demo)");
 
-            // TODO: เรียก AJAX / redirect / submit form ตามที่คุณออกแบบไว้จริง
+        //TODO: เรียก AJAX / redirect / submit form ตามที่คุณออกแบบไว้จริง
         });
 
         function startCalculation() {
@@ -228,7 +245,7 @@ require_once 'includes/function_simulate.php';
                 }
             });
 
-            // ตัวอย่างจำลองการประมวลผล (แทน AJAX จริงในอนาคต)
+            //     // ตัวอย่างจำลองการประมวลผล (แทน AJAX จริงในอนาคต)
             setTimeout(() => {
                 Swal.fire({
                     icon: 'success',
@@ -238,8 +255,8 @@ require_once 'includes/function_simulate.php';
                 });
 
                 // ถ้าต้องการ reload หน้าหลังประมวลผล:
-                // location.reload();
-            }, 3000); // ← เปลี่ยนให้สั้น/ยาวได้ตามสถานะจริงที่คุณจะเช็คในอนาคต
+                location.reload();
+            }, 3000); //← เปลี่ยนให้สั้น/ยาวได้ตามสถานะจริงที่คุณจะเช็คในอนาคต
         }
     </script>
 

@@ -699,3 +699,110 @@
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulate Calculation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/simulate.css">
+    <style>
+        /* ... (Keep your existing CSS for .loader) ... */
+        .loader {
+            display: none; /* Initially hide the loader */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <h2>Simulate Calculation</h2>
+    <div class="loader" id="pageLoader"></div>
+
+    <div class="top-controls">
+        <form method="GET" class="form-inline">
+            <input type="hidden" name="page" value="simulate_calculation">
+            <label for="period" class="form-label">Fiscal Year-Period:</label>
+            <select class="form-select" name="period" id="period" onchange="this.form.submit()">
+                <?php foreach ($periods as $period): ?>
+                    <option value="<?= htmlspecialchars($period) ?>" <?= ($period == $selectedPeriod ? 'selected' : '') ?>>
+                        <?= htmlspecialchars($period) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+
+        <?php if ($selectedPeriod): ?>
+            <form id="prepareMasterForm" class="form-inline">
+                <input type="hidden" name="period" value="<?= htmlspecialchars($selectedPeriod) ?>">
+                <button type="button" class="btn btn-info" id="prepareMasterBtn">Prepare Master</button>
+            </form>
+            <?php endif; ?>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const prepareBtn = document.getElementById("prepareMasterBtn");
+            const loader = document.getElementById("pageLoader");
+            
+            // Get the selected period from the hidden input field
+            const selectedPeriodInput = document.querySelector('#prepareMasterForm input[name="period"]');
+            const selectedPeriod = selectedPeriodInput ? selectedPeriodInput.value : '';
+
+            if (prepareBtn && loader) {
+                prepareBtn.addEventListener("click", function () {
+                    // Show the loader immediately
+                    loader.style.display = 'flex';
+
+                    // Use Fetch API to send a request to a new processing script
+                    fetch('process_prepare_master.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `period=${encodeURIComponent(selectedPeriod)}&prepare_master=1`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide the loader
+                        loader.style.display = 'none';
+
+                        // Show SweetAlert based on the response
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: data.message,
+                            }).then(() => {
+                                // Reload the page to display the updated table
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: data.message,
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        // Hide loader and show an error if the request fails
+                        loader.style.display = 'none';
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Connection Error',
+                            text: 'Failed to communicate with the server.',
+                        });
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
