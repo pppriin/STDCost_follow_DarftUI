@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['uploads_csv'])){
                 'Notes', 'Entry_time', 'Entry_user_CD', 'Entry_user_name', 'Update_time',
                 'Update_user_CD', 'Update_user_name' );
     $result = uploadCsvAndInsert($conn, 'allocation_basic', 'STDC_Allocation_basic_master', $columns);
-
+  
     if ($result['status']){
         echo "<div class='alert alert-success'>{$result['message']}</div>";
         // echo "<pre>"; print_r($result); echo "</pre>";

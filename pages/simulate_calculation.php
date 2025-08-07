@@ -42,12 +42,17 @@ require_once 'includes/function_simulate.php';
         </form>
 
         <?php if ($selectedPeriod): ?>
-            <form method="POST" class="form-inline">
-                <input type="hidden" name="period" value="<?= htmlspecialchars($selectedPeriod) ?>">
-                <!-- <button type="submit" name="prepare_master" class="btn btn-info" id="prepareMasterBtn" onclick="handlePrepareMaster(event)">Prepare Master</button> -->
-                <button type="submit" name="prepare_master" class="btn btn-info" id="prepareMasterBtn">Prepare Master</button>
-            </form>
-
+            <?php if ($hasAllFiles): ?>
+                <form method="POST" class="form-inline">
+                    <input type="hidden" name="period" value="<?= htmlspecialchars($selectedPeriod) ?>">
+                    <!-- <button type="submit" name="prepare_master" class="btn btn-info" id="prepareMasterBtn" onclick="handlePrepareMaster(event)">Prepare Master</button> -->
+                    <button type="submit" name="prepare_master" class="btn btn-info" id="prepareMasterBtn">Prepare Master</button>
+                </form>
+            <?php else: ?>
+                <div class="alert alert-warning mt-2">
+                    ⚠ Please upload all files before you can prepare master.
+                </div>
+            <?php endif; ?>
             
             <!-- Results Table -->
             <div class="table-wrapper">
@@ -142,6 +147,8 @@ require_once 'includes/function_simulate.php';
         <button type="button" class="btn btn-primary" style="margin-top: 20px;" id="startCalcBtn">Start Calculation</button>
     <?php endif; ?>
 
+
+    <!------------------------------------------------------ JS---------------------------------------------- -->
     <script>
         // Function to show the loader and overlay,blur effect
         function showLoader() {
@@ -198,7 +205,7 @@ require_once 'includes/function_simulate.php';
                     icon: 'warning',
                     title: 'ยังไม่เลือกรายการ',
                     text: 'กรุณาเลือกรายการที่ต้องการคำนวณ',
-                    confirmButtonText: 'ตกลง'
+                    confirmButtonText: 'OK'
                 });
                 return;
             }
@@ -214,11 +221,11 @@ require_once 'includes/function_simulate.php';
             if (hasConfirmed) {
                 Swal.fire({
                     icon: 'พบรายการ Confirmed ที่จะนำไปคำนวณใหม่?',
-                    text: "คุณต้องการดำเนินการต้อไปหรือไม่?",
+                    text: "พบรายการ Confirmed ที่จะนำไปคำนวณใหม่? คุณต้องการดำเนินการต่อไปหรือไม่?",
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'ยืนยัน',
-                    cencelButtonText: 'ยกเลิก'
+                    confirmButtonText: 'OK',
+                    cencelButtonText: 'Cancel'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         startCalculation();

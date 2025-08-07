@@ -4,8 +4,8 @@ require_once 'includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['uploads_csv'])) {
 
-    $columns = array('Alloc_source_dept_CD', 'Alloc_source_dept_name', 'Alloc_AC_CD', 'Alloc_AC_name', 'Alloc_rate_CD', 'Alloc_rate_name', 'Transfer_alloc_AC_CD', 'Transfer_alloc_AC_name');
-    $result = uploadCsvAndInsert($conn, 'time_manufacturing', 'STDC_Indirect_allocation_master', $columns);
+    $columns = array('Item_CD', 'Item_name', 'BOM_pattern', 'Var_operation_time', 'Base_qty');
+    $result = uploadCsvAndInsert($conn, 'time_manufacturing', 'STDC_Time_Manufacturing', $columns);
 
     if ($result['status']) {
         echo "<div class='alert alert-success'>{$result['message']}</div>";

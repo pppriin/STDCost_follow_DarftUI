@@ -468,5 +468,10 @@ try {
 	loading ระหว่างประมวลผลหลังจากกด Prepare Master
 	loading ระหว่าง start calculation =Run Simulation Please wait...
 	-ยังติดปัญหา simulate_calculation.php= cencelButtonText
-	
-	
+
+
+------------------------------------------------------
+7 Aug 
+batch in php = การประมวลผลข้อมูลเป็นกลุ่มๆ (batch) แทนที่จะทำทีละรายการ  
+     ตัวอย่างการทำงาน หากคุณมีข้อมูล 10,000 แถว แทนที่จะประมวลผลทั้งหมดพร้อมกัน คุณอาจแบ่งเป็น batch ละ 1,000 แถว เพื่อประหยัดหน่วยความจำ:
+CREATE PROCEDURE เสร็จแล้ว 5PM

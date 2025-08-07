@@ -82,7 +82,7 @@ function validateAndInsertData($conn, $pageKey, $selectedPeriod, $table_map)
         // check columns
         if ($csvColumnCount !== $expectedColumnCount) {
             fclose($handle);
-            $result['message'] = "Error: Column count mismatch - CSV has {$csvColumnCount} columns, Table needs {$expectedColumnCount} columns";
+            $result['message'] = "Error: Column count mismatch - CSV has {$csvColumnCount} columns, Table needs {$expectedColumnCount} columns </span>";
             return $result;
         }
 
@@ -113,23 +113,42 @@ function validateAndInsertData($conn, $pageKey, $selectedPeriod, $table_map)
             rewind($handle);
             fgetcsv($handle);
 
+
+            $batchSize = floor(2100 / $expectedColumnCount);
+            $batchSize = max(1, min($batchSize, 300));
+            $batch = [];
+            $allParams = [];
+
             // อ่านและ insert ข้อมูลแต่ละแถว
             while (($data = fgetcsv($handle, 1000, ",")) !== false) {
-                $rowIndex++;
                 if (count($data) < $expectedColumnCount) {
                     $errorCount++;
-                    continue; // ข้ามแถวที่ข้อมูลไม่ครบ
+                    continue;
                 }
 
                 try {
-                    // ประมวลผลข้อมูลตามประเภทของ pageKey
                     $processedData = processDataByPageKey($pageKey, $data, $expectedColumns);
-
-                    $stmtInsert->execute($processedData);
+                    $batch[] = "(" . implode(",", array_fill(0, $expectedColumnCount, "?")) . ")";
+                    $allParams = array_merge($allParams, array_slice($processedData, 0, $expectedColumnCount));
+                    $rowIndex++;
                     $insertCount++;
+
+                    // Execute batch
+                    if (count($batch) >= $batchSize) {
+                        $sql = "INSERT INTO $tableName (" . implode(",", $expectedColumns) . ") VALUES " . implode(",", $batch);
+                        $conn->prepare($sql)->execute($allParams);
+                        $batch = [];
+                        $allParams = [];
+                    }
                 } catch (Exception $rowError) {
                     $errorCount++;
                 }
+            }
+
+            // Flush leftover
+            if (count($batch) > 0) {
+                $sql = "INSERT INTO $tableName (" . implode(",", $expectedColumns) . ") VALUES " . implode(",", $batch);
+                $conn->prepare($sql)->execute($allParams);
             }
 
             $conn->commit();
@@ -191,6 +210,19 @@ if (isset($_POST['prepare_master']) && $selectedPeriod) {
     }
 }
 
+// check file 
+$hasAllFiles = true;
+foreach ($menu_items as $code => $title) {
+    $folder = __DIR__ . '/../uploads/' . $code;
+    $filename = $selectedPeriod . '.csv';
+    $filepath = $folder . '/' . $filename;
+
+    if (!file_exists($filepath)) {
+        $hasAllFiles = false;
+        break;
+    }
+}
+
 // การทำงานประมวลผลเพื่อเรียกใช้งาน select item cal show
 $hasSuccess = true;
 foreach ($prepareResults as $res) {
@@ -203,4 +235,5 @@ foreach ($prepareResults as $res) {
         break;
     }
 }
+
 ?>

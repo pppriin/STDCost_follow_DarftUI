@@ -1,6 +1,7 @@
 <?php
 
-set_time_limit(300);    /* 5 mn. */
+set_time_limit(0);    /* 5 mn. */
+ini_set('memory_limit', '512M'); 
 
 function checkFileUploaded($conn, $masterCode, $period = null) {
     if (!$period) return false;
@@ -14,7 +15,6 @@ function checkFileUploaded($conn, $masterCode, $period = null) {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row['count'] > 0;
 }
-
 
 // ---------- Upload CSV and Insert ----------
 // $pageKey=manuแต่ละตัว
@@ -85,95 +85,105 @@ function uploadCsvAndInsert($conn, $pageKey, $targetTable, $columns, $uploadBase
 
     $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
-    if ($extension === 'csv') {
-        // 5. อ่านข้อมูลจาก CSV และ Insert เปิดไฟล์ด้วยfopen
-        if (($handle = fopen($targetFile, "r")) !== false) {
-            //insert statement($placeholders) กำหนด? เท่ากับจำนวนคอลัมน์ที่มีอยู่ใน table
-            $placeholders = implode(',', array_fill(0, count($columns), '?'));
-            $sql = "INSERT INTO $targetTable (" . implode(',', $columns) . ") VALUES ($placeholders)";
-            $stmtInsert = $conn->prepare($sql);
-
-            $conn->beginTransaction();
-            // $insertCount = 0;
+    if ($extension !== 'csv') {
+        return ['status' => false, 'message' => 'Unsupported file format.'];
+    }
+         // อ่านและ Insert แบบ Bulk
+    if (($handle = fopen($targetFile, "r")) !== false) {
+        $conn->beginTransaction();
         try {
-             $rowIndex = 0; //ใช้นับแถว
-            //อ่านแต่ละบรรทัดแยกด้วย ,
+            $maxParams = 2100;
+            $batchSize = floor($maxParams / count($columns));
+            $batchSize = max(1, min($batchSize, 300)); // ป้องกันการหารศูนย์หรือมากเกิน
+
+            $batchData = [];
+            $rowIndex = 0;
+
             while (($data = fgetcsv($handle, 1000, ",")) !== false) {
-                // echo '<pre>'; print_r($data); echo '</pre>'; 
-
                 $rowIndex++;
-                if ($rowIndex === 1) continue;     //ข้ามแถวแรกไปโดยไม่ต้องอ่าน
+                if ($rowIndex === 1) continue;
                 if (count($data) < count($columns)) continue;
- 
-                    // เงื่อนไข menu std_cost  ต้องมีการแปลงข้อมูล Std_cost_perunit จาก String to decimal
-                    if ($pageKey === 'std_cost'){
-                        // แปลง Std_cost_perunit to decimal 
-                        $colIndex = array_search('Std_cost_perunit', $columns);
-                        if ($colIndex !== false){
-                            // $raw = trim($data[$colIndex]);
-                            $raw = trim(str_replace(',', '', $data[$colIndex])); // เช่น ลบ ,
-                            $data[$colIndex] = is_numeric($raw) ? round((float)$raw, 4) : null;
-                        }
 
-                        // แปลง Base_qty เป็น int
-                        $qtyIndex = array_search('Base_qty', $columns);
-                        if($qtyIndex != false) {
-                            $raw = trim($data[$qtyIndex]);
-                            $data[$qtyIndex] = is_numeric($raw) ? (int)$raw : null;
+                // ========== เงื่อนไขเฉพาะหน้า ========== //
+                if ($pageKey === 'std_cost') {
+                    $colIndex = array_search('Std_cost_perunit', $columns);
+                    if ($colIndex !== false) {
+                        $raw = trim(str_replace(',', '', $data[$colIndex]));
+                        $data[$colIndex] = is_numeric($raw) ? round((float)$raw, 4) : null;
+                    }
+
+                    $qtyIndex = array_search('Base_qty', $columns);
+                    if ($qtyIndex !== false) {
+                        $raw = trim($data[$qtyIndex]);
+                        $data[$qtyIndex] = is_numeric($raw) ? (int)$raw : null;
+                    }
+                }
+
+                if ($pageKey === 'allocation_basic') {
+                    foreach (['Rounding_digit', 'Alloc_adjustment_type'] as $colName) {
+                        $colIndex = array_search($colName, $columns);
+                        if ($colIndex !== false && isset($data[$colIndex])) {
+                            $raw = trim($data[$colIndex]);
+                            $data[$colIndex] = ($raw === '' || !is_numeric($raw)) ? null : (int)$raw;
                         }
                     }
 
-                    // เงื่อไขของหน้า allocation_basic แปลงstring to tinyint
-                    if ($pageKey === 'allocation_basic') {
-                        // แปลง integer fields
-                        foreach (['Rounding_digit', 'Alloc_adjustment_type'] as $colName) {
-                            $colIndex = array_search($colName, $columns);
-                            if ($colIndex !== false && isset($data[$colIndex])) {
-                                $raw = trim($data[$colIndex] ?? '');
-                                $data[$colIndex] = ($raw === '' || !is_numeric($raw)) ? null : (int)$raw;
-                            }
-                        }
-
-                        // แปลง boolean fields
-                        foreach (['Non_minus', 'Coefficient_limit', 'Std_alloc'] as $colName) {
-                            $colIndex = array_search($colName, $columns);
-                            if ($colIndex !== false && isset($data[$colIndex])) {
-                                $raw = strtolower(trim($data[$colIndex] ?? ''));
-                                if ($raw === '') {
-                                    $data[$colIndex] = null;
-                                } else {
-                                    $data[$colIndex] = ($raw === 'true' || $raw === '1' || $raw === 'yes') ? 1 : 0;
-                                }
-                            }
+                    foreach (['Non_minus', 'Coefficient_limit', 'Std_alloc'] as $colName) {
+                        $colIndex = array_search($colName, $columns);
+                        if ($colIndex !== false && isset($data[$colIndex])) {
+                            $raw = strtolower(trim($data[$colIndex]));
+                            $data[$colIndex] = ($raw === '') ? null : (($raw === 'true' || $raw === '1' || $raw === 'yes') ? 1 : 0);
                         }
                     }
+                }
 
+                $batchData[] = array_slice($data, 0, count($columns));
 
-                    $stmtInsert->execute(array_slice($data, 0, count($columns)));
-                } 
+                if (count($batchData) >= $batchSize) {
+                    insertBatch($conn, $targetTable, $columns, $batchData);
+                    $batchData = [];
+                }
+            }
+
+            if (!empty($batchData)) {
+                insertBatch($conn, $targetTable, $columns, $batchData);
+            }
 
             fclose($handle);
             $conn->commit();
         } catch (Exception $e) {
-            $conn->rollBack();      //ยกเลิกหากมี error
+            $conn->rollBack();
             fclose($handle);
             return ['status' => false, 'message' => 'Insert failed: ' . $e->getMessage()];
         }
-           
-        } else {
-            return ['status' => false, 'message' => 'Unable to open uploaded CSV file.'];
-        }
-    } 
-    else {
-        return ['status' => false, 'message' => 'Unsupported file format.'];
+    } else {
+        return ['status' => false, 'message' => 'Unable to open uploaded CSV file.'];
     }
-    
 
-    // 6. บันทึกข้อมูลไฟล์ที่อัปโหลดไว้
+    // Log ลงตาราง Uploaded_Files
     $stmt = $conn->prepare("INSERT INTO STDC_Uploaded_Files (MasterCode, File_Name, FilePath , PeriodCode) VALUES (?, ?, ?, ?)");
     $stmt->execute([$pageKey, $filename, $targetPath, $periodCode]);
 
     return ['status' => true, 'message' => 'Upload and insert success.'];
+}
+
+// ฟังก์ชันสำหรับ Bulk Insert
+function insertBatch($conn, $table, $columns, $dataBatch) {
+    if (empty($dataBatch)) return;
+
+    $placeholders = [];
+    $flatData = [];
+
+    foreach ($dataBatch as $row) {
+        $placeholders[] = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
+        foreach ($row as $value) {
+            $flatData[] = $value;
+        }
+    }
+
+    $sql = "INSERT INTO $table (" . implode(',', $columns) . ") VALUES " . implode(',', $placeholders);
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($flatData);
 }
 
 ?>
