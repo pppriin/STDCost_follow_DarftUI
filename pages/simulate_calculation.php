@@ -23,11 +23,11 @@ require_once 'includes/function_simulate.php';
 
 <body>
 
-<div class="loader-overlay" id="loader-overlay">
-    <div class="loader" id="loader"></div>
-</div>
+    <div class="loader-overlay" id="loader-overlay">
+        <div class="loader" id="loader"></div>
+    </div>
     <h2>Simulate Calculation</h2>
-    
+
     <div class="top-controls">
         <form method="GET" class="form-inline">
             <input type="hidden" name="page" value="simulate_calculation">
@@ -53,12 +53,12 @@ require_once 'includes/function_simulate.php';
                     ⚠ Please upload all files before you can prepare master.
                 </div>
             <?php endif; ?>
-            
+
             <!-- Results Table -->
             <div class="table-wrapper">
                 <div class="table-container">
                     <!-- <div class="loader" id="loader"></div> -->
-                    
+
                     <table>
                         <thead>
                             <tr>
@@ -144,7 +144,9 @@ require_once 'includes/function_simulate.php';
                 <?php require_once 'pages/item_list.php'; ?>
             </div>
         </div>
-        <button type="button" class="btn btn-primary" style="margin-top: 20px;" id="startCalcBtn">Start Calculation</button>
+
+        <button type="button" class="btn btn-primary" style="margin-top: 20px;" id="startCalcBtn" onclick="startCalculation()">Start Calculation</button>
+
     <?php endif; ?>
 
 
@@ -154,7 +156,7 @@ require_once 'includes/function_simulate.php';
         function showLoader() {
             const loader = document.getElementById('loader');
             const overlay = document.getElementById('loader-overlay');
-            
+
             if (overlay && loader) {
                 overlay.classList.add('show');
                 loader.classList.add('show');
@@ -166,7 +168,7 @@ require_once 'includes/function_simulate.php';
         function hideLoader() {
             const loader = document.getElementById('loader');
             const overlay = document.getElementById('loader-overlay');
-            
+
             if (overlay && loader) {
                 overlay.classList.remove('show');
                 loader.classList.remove('show');
@@ -210,7 +212,7 @@ require_once 'includes/function_simulate.php';
                 return;
             }
 
-        //     // ตรวจสอบว่ามีรายการ Confirmed หรือไม่
+            //     // ตรวจสอบว่ามีรายการ Confirmed หรือไม่
             let hasConfirmed = false;
             checkboxes.forEach(cb => {
                 if (cb.dataset.status.trim().toLowerCase() === 'confirmed') {
@@ -235,10 +237,10 @@ require_once 'includes/function_simulate.php';
                 startCalculation();
             }
 
-        // 🚀 ดำเนินการ Start Calculation ต่อได้ที่นี่ เช่น:
-        //alert("เริ่มการคำนวณแล้ว... (demo)");
+            // 🚀 ดำเนินการ Start Calculation ต่อได้ที่นี่ เช่น:
+            //alert("เริ่มการคำนวณแล้ว... (demo)");
 
-        //TODO: เรียก AJAX / redirect / submit form ตามที่คุณออกแบบไว้จริง
+            //TODO: เรียก AJAX / redirect / submit form ตามที่คุณออกแบบไว้จริง
         });
 
         function startCalculation() {
@@ -252,18 +254,89 @@ require_once 'includes/function_simulate.php';
                 }
             });
 
-            //     // ตัวอย่างจำลองการประมวลผล (แทน AJAX จริงในอนาคต)
-            setTimeout(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'เสร็จสิ้น',
-                    text: 'การประมวลผล Simulation สำเร็จแล้ว!',
-                    confirmButtonText: 'ตกลง'
-                });
+            fetch('/STD_Cost/pages/run_simulate.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'start_calculation'
+                    })
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    const contentType = res.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        return res.text().then(text => {
+                            console.error("Server response:", text);
+                            throw new Error("Server returned non-JSON response");
+                        });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    Swal.close();
+                    if (data.success) {
+                        let downloadButtonsHtml = '';
+                        
+                        if (data.logFile && data.logFileData) {
+                            downloadButtonsHtml += `<button id="downloadLog" class="swal2-confirm swal2-styled" style="margin:5px;">Download Log File (TXT)</button>`;
+                        }
 
-                // ถ้าต้องการ reload หน้าหลังประมวลผล:
-                location.reload();
-            }, 3000); //← เปลี่ยนให้สั้น/ยาวได้ตามสถานะจริงที่คุณจะเช็คในอนาคต
+                        if (data.csvFile && data.csvFileData) {
+                            downloadButtonsHtml += `<button id="downloadCSV" class="swal2-confirm swal2-styled" style="margin:5px;">Download CSV File</button>`;
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Calculation Finished',
+                            html: `
+                    Database Count: ${data.count} rows
+                    <div style="margin-top:15px;">${downloadButtonsHtml}</div>
+                `,
+                            width: '600px',
+                            showCloseButton: true,
+                            didRender: () => {
+                                if (data.logFile && data.logFileData) {
+                                    document.getElementById('downloadLog').addEventListener('click', () => {
+                                        downloadFile(data.logFile, data.logFileData, 'text/plain');
+                                    });
+                                }
+                                if (data.csvFile && data.csvFileData) {
+                                    document.getElementById('downloadCSV').addEventListener('click', () => {
+                                        downloadFile(data.csvFile, data.csvFileData, 'text/csv');
+                                    });
+                                }
+                            }
+                        });
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Unknown error occurred'
+                        });
+                    }
+                })
+                .catch(err => {
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Network Error',
+                        text: err.message || 'Failed to connect to server'
+                    });
+                });
+        }
+
+        function downloadFile(filename, contentBase64, mimeType) {
+            const link = document.createElement('a');
+            link.href = `data:${mimeType};base64,${contentBase64}`;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link)
         }
     </script>
 

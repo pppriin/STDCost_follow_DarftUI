@@ -113,7 +113,7 @@ function validateAndInsertData($conn, $pageKey, $selectedPeriod, $table_map)
             rewind($handle);
             fgetcsv($handle);
 
-
+            // insert data ที่เร็วขึ้นกว่า insert
             $batchSize = floor(2100 / $expectedColumnCount);
             $batchSize = max(1, min($batchSize, 300));
             $batch = [];

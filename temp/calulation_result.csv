@@ -1,0 +1,4 @@
+Fycode,Item_CD,Cost_item_type,Std_use_qty,Unit,Component_ratio,Total_std,Direct_material,Trading_Goods_cost,Gas_Water_Exp,Electrical_Power_Exp,OutsourceProcess_Exp,Variable_Cost,Line_labor_cost,Line_Depreciation,Line_contract_fee,Line_expense,WS_labor_cost,WS_Deoreciation,WS_expense,Technical_labor_cost,Technical_Depre,Technical_expense,Planning_labor_cost,Planning_Depre,Planning_expense,Other_Indirect_Labor,Other_Indirect_Depre,Other_Indirect_exp,Prod_mainexp_WS,Id_Prod_main_exp
+20251H,2100000001,,1.0000,Pieces,100.0000,53.3001,25.2767,4.5281,1.8387,2.1168,5.7193,1.3140,.6380,1.7570,.8379,2.0636,,,,,,,,,,,,2.8850,,1
+20251H,2100000001,Finished Goods,1.0000,Pieces,41.3700,22.0501,,4.0884,.8842,1.6097,4.6770,1.0139,.2717,1.1638,.7941,1.8357,,,,,,,,,,,,2.6655,,2
+20251H,MWCASL0013,WIP,.0610,Kilogram,23.1800,12.3545,10.0630,.1297,.1824,.1740,.4460,.0837,.2968,.2309,.0167,.0883,,,,,,,,,,,,.0908,,3

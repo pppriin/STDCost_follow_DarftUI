@@ -475,3 +475,26 @@ try {
 batch in php = การประมวลผลข้อมูลเป็นกลุ่มๆ (batch) แทนที่จะทำทีละรายการ  
      ตัวอย่างการทำงาน หากคุณมีข้อมูล 10,000 แถว แทนที่จะประมวลผลทั้งหมดพร้อมกัน คุณอาจแบ่งเป็น batch ละ 1,000 แถว เพื่อประหยัดหน่วยความจำ:
 CREATE PROCEDURE เสร็จแล้ว 5PM
+
+
+------------------------------------------------------
+8 Aug
+20251H, 2100000001 เทสไม่ได้
+
+จากโค้ดทั้งหมดที่ให้ไปก่อนก่อนหน้าต้องการการทำงานเพิ่มเติมโดยไม่กระทบการทำงานหลักดังนี้ 1.
+หลังจากกดปุ่ม Start Calในหน้า simulate_calculation.php การเลือก itemก่อนหน้าจะไม่ส่งผลอะไรใดๆ แต่เมื่อกดปุ่ม start cal จะประมวลผลข้อมูล ภายใน store procedure ดังนี้ 
+1.if show php check count rows in database from #STDC_TempCalItem_Count=if count success: icon check mark ,Error x 
+2.if need select #STDC_Calculation_log  show log file .txt data in #STDC_Calculation_log แค่โชว์ชื่อไฟล์มาให้ และปุ่มดาน์โหลเพื่อจะโหลด .txtไปดู 
+3. if need select #STDC_Calculation_Results_temp show .csv data in file #STDC_Calculation_Results_temp  แค่โชว์ชื่อไฟล์มาให้ และปุ่มดาน์โหลเพื่อจะโหลด .csv ไปดู 
+
+ใช้คำสั่ง SELECT COUNT(*) AS RowCount คำสั่งนี้ไม่ได้ แต่ใช้คำสั่ง SELECT COUNT(*) FROM #STDC_TempCalItem_Count; ได้
+
+
+--------------------
+Annpun
+แบ่งเป็น categoey
+-Company Announument
+-Company Order
+
+
+
